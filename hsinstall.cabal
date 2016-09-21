@@ -1,7 +1,13 @@
 name:                hsinstall
 version:             1.0
-synopsis:            Initial project template from stack
-description:         Please see README.md
+synopsis:            Install Haskell software
+description:         This is a utility to install Haskell programs
+                     on a system. It tries to install the binaries,
+                     the LICENSE file and also the resources
+                     directory if it finds one. This project is the
+                     result of working around limitations in both
+                     cabal and stack and, hopefully, can make life
+                     with both of those tools better.
 homepage:            
 license:             ISC
 license-file:        LICENSE
