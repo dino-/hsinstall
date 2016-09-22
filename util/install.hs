@@ -33,8 +33,7 @@ main = do
    cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
 
    when (null cabalFiles) $ do
-      putStrLn "Can't continue because no cabal files were found in ."
-      exitFailure
+      die "Can't continue because no cabal files were found in ."
 
    -- Parse the cabal file and extract things we need from it
    pkg <- package . packageDescription <$> readPackageDescription normal (head cabalFiles)
