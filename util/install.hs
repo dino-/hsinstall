@@ -18,6 +18,7 @@ import System.Exit
 import System.FilePath
 import System.Process
 import Text.Printf
+import Text.Read
 
 
 defaultPrefix :: FilePath
@@ -27,10 +28,13 @@ defaultPrefix = "/opt"
 main :: IO ()
 main = do
    -- Parse args
-   (opts, dirs) <- parseOpts =<< getArgs
+   (opts, args) <- parseOpts =<< getArgs
 
    -- User asked for help
    when (optHelp opts) $ putStrLn usageText >> exitSuccess
+
+   unless (length args == 1) $ die usageText
+   installType <- readInstallType $ head args
 
    -- Check for existence of the stack utility
    (flip unless $
@@ -48,9 +52,8 @@ main = do
    let version = showVersion . pkgVersion $ pkg
 
    -- Set the variables we need to proceed
-   let prefix = if null dirs then defaultPrefix else head dirs
    let versionPart = if optVersion opts then "-" ++ version else ""
-   let installDir = prefix </> (project ++ versionPart)
+   let installDir = optPrefix opts </> (project ++ versionPart)
 
 
    -- Perform the installation
@@ -107,6 +110,7 @@ data Options = Options
    { optClean :: Bool
    , optDelete :: Bool
    , optHelp :: Bool
+   , optPrefix :: FilePath
    , optVersion :: Bool
    }
 
@@ -115,8 +119,24 @@ defaultOptions = Options
    { optClean = True
    , optDelete = False
    , optHelp = False
+   , optPrefix = defaultPrefix
    , optVersion = True
    }
+
+
+data InstallType = Bundle | FHS
+
+instance Read InstallType where
+   readsPrec _ "bundle" = [(Bundle, "")]
+   readsPrec _ "fhs"    = [(FHS, "")]
+   readsPrec _ _        = []
+
+
+readInstallType :: String -> IO InstallType
+readInstallType s =
+   case (readEither s) of
+      Left _ -> die $ printf "Can't continue because %s is not a valid install type\n\n%s" s usageText
+      Right t -> return t
 
 
 options :: [OptDescr (Options -> Options)]
@@ -130,9 +150,12 @@ options =
    , Option ['h'] ["help"]
       (NoArg (\opts -> opts { optHelp = True } ))
       "This help information"
+   , Option ['p'] ["prefix"]
+      (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
+      (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION" defaultPrefix defaultPrefix)
    , Option ['V'] ["no-version"]
       (NoArg (\opts -> opts { optVersion = False } ))
-      "Do not include version in installation path"
+      (printf "Do not include version in installation path, meaning: %s/PROJECT" defaultPrefix)
    ]
 
 
@@ -147,13 +170,15 @@ usageText :: String
 usageText = (usageInfo header options) ++ "\n" ++ footer
    where
       header = init $ unlines
-         [ "Usage: hsinstall.hs [OPTIONS] [PREFIX]"
+         [ "Usage: hsinstall.hs [OPTIONS] INST_TYPE"
          , ""
          , "options:"
          ]
       footer = init $ unlines
          [ ""
-         , printf "PREFIX is the install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION" defaultPrefix defaultPrefix
+         , "INST_TYPE is the topology used when copying files, one of: bundle, fhs"
+         , ""
+         , "[describe bundle style]"
          , ""
          , "Dino Morelli <dino@ui3.info>"
          ]
