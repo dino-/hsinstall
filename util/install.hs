@@ -1,5 +1,8 @@
 #! /usr/bin/env runhaskell
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
+import Control.Exception
 import Control.Monad
 import Data.List
 import Data.Version
@@ -28,6 +31,10 @@ main = do
 
    -- User asked for help
    when (optHelp opts) $ putStrLn usageText >> exitSuccess
+
+   -- Check for existence of the stack utility
+   (flip unless $
+      die "Can't continue because we can't find the stack utility") =<< stackExists
 
    -- Locate cabal file
    cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
@@ -75,6 +82,21 @@ main = do
       return ()
 
    exitSuccess
+
+
+stackExists :: IO Bool
+stackExists = do
+   result <- try $ readProcessWithExitCode "stack" ["--version"] ""
+   return $ case result of
+      Left  (_ :: IOException) -> False
+      Right (ec, _, _)         -> ok ec
+
+
+{- Turn an exit code (say, from system) into a Bool
+-}
+ok :: ExitCode -> Bool
+ok ExitSuccess = True
+ok _           = False
 
 
 {-
