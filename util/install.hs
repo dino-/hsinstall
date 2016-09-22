@@ -47,44 +47,64 @@ main = do
       die "Can't continue because no cabal files were found in ."
 
    -- Parse the cabal file and extract things we need from it
-   pkg <- package . packageDescription <$> readPackageDescription normal (head cabalFiles)
-   let project = unPackageName . pkgName $ pkg
-   let version = showVersion . pkgVersion $ pkg
-
-   -- Set the variables we need to proceed
-   let versionPart = if optVersion opts then "-" ++ version else ""
-   let installDir = optPrefix opts </> (project ++ versionPart)
+   -- then pass a pile of what we know to a function to create the
+   -- installation dirs
+   dirs <- constructDirs installType opts . package . packageDescription
+      <$> readPackageDescription normal (head cabalFiles)
 
 
    -- Perform the installation
 
    -- Remove existing install directory
-   installDirExists <- doesDirectoryExist installDir
-   when (optDelete opts && installDirExists) $ do
-      putStrLn $ "Removing existing directory " ++ installDir
-      removeDirectoryRecursive installDir
+   appDirExists <- doesDirectoryExist $ appDir dirs
+   when (optDelete opts && appDirExists) $ do
+      putStrLn $ "Removing existing directory " ++ (appDir dirs)
+      removeDirectoryRecursive $ appDir dirs
 
    -- Clean before building
    when (optClean opts) $ system "stack clean" >> return ()
 
    -- Copy the binaries
-   system $ "stack install --local-bin-path=" ++ (installDir </> "bin")
+   system $ "stack install --local-bin-path=" ++ (binDir dirs)
 
    -- Copy the license
    putStrLn "\nCopying LICENSE"
-   let docDir = installDir </> "doc"
-   createDirectoryIfMissing False docDir
-   copyFile "LICENSE" (docDir </> "LICENSE")
+   createDirectoryIfMissing True $ docDir dirs
+   copyFile "LICENSE" (docDir dirs </> "LICENSE")
 
    -- Copy the resources
-   let rsrcDir = "." </> "resources"
-   rsrcDirExists <- doesDirectoryExist rsrcDir
-   when rsrcDirExists $ do
+   let rsrcDirSrc = "." </> "resources"
+   rsrcsExist <- doesDirectoryExist rsrcDirSrc
+   when rsrcsExist $ do
       putStrLn $ "\nCopying resources"
-      copyTree rsrcDir (installDir </> "resources")
+      copyTree rsrcDirSrc (rsrcDir dirs)
       return ()
 
    exitSuccess
+
+
+data Dirs = Dirs
+   { appDir :: FilePath
+   , binDir :: FilePath
+   , docDir :: FilePath
+   , rsrcDir :: FilePath
+   }
+
+
+constructDirs :: InstallType -> Options -> PackageId -> Dirs
+constructDirs instType opts pkgId =
+   Dirs appDir binDir' (appDir </> "doc") (appDir </> "resources")
+
+   where
+      project = unPackageName . pkgName $ pkgId
+      version = showVersion . pkgVersion $ pkgId
+      versionPart = if optVersion opts then "-" ++ version else ""
+      appDir = case instType of
+         Bundle -> optPrefix opts </> (project ++ versionPart)
+         FHS    -> optPrefix opts </> "share" </> (project ++ versionPart)
+      binDir' = case instType of
+         Bundle -> appDir </> "bin"
+         FHS    -> optPrefix opts </> "bin"
 
 
 stackExists :: IO Bool
@@ -146,7 +166,7 @@ options =
       "Do not do 'stack clean' first"
    , Option ['d'] ["delete"]
       (NoArg (\opts -> opts { optDelete = True } ))
-      "Delete the dest directory before copying files"
+      "Delete the app directory before copying files"
    , Option ['h'] ["help"]
       (NoArg (\opts -> opts { optHelp = True } ))
       "This help information"
@@ -170,7 +190,7 @@ usageText :: String
 usageText = (usageInfo header options) ++ "\n" ++ footer
    where
       header = init $ unlines
-         [ "Usage: hsinstall.hs [OPTIONS] INST_TYPE"
+         [ "Usage: install.hs [OPTIONS] INST_TYPE"
          , ""
          , "options:"
          ]
@@ -178,9 +198,26 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          [ ""
          , "INST_TYPE is the topology used when copying files, one of: bundle, fhs"
          , ""
-         , "[describe bundle style]"
+         , "bundle is sort-of a self-contained structure like this:"
          , ""
-         , "Dino Morelli <dino@ui3.info>"
+         , "  $PREFIX/"
+         , "    $PROJECT-$VERSION/    <-- this is the \"app directory\""
+         , "      bin/..."
+         , "      doc/LICENSE"
+         , "      resources/..."
+         , ""
+         , "fhs is the more traditional UNIX structure like this:"
+         , ""
+         , "  $PREFIX/"
+         , "    bin/..."
+         , "    share/"
+         , "      $PROJECT-$VERSION/  <-- this is the \"app directory\""
+         , "        doc/LICENSE"
+         , "        resources/..."
+         , ""
+         , "Be aware that when the --delete switch is used along with fhs type, the binaries WILL NOT be deleted, only the \"app directory\"."
+         , ""
+         , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
          ]
 
 
