@@ -77,7 +77,7 @@ main = do
    rsrcsExist <- doesDirectoryExist rsrcDirSrc
    when rsrcsExist $ do
       putStrLn $ "\nCopying resources"
-      copyTree rsrcDirSrc (rsrcDir dirs)
+      copyTree (not . optQuietRsrc $ opts) rsrcDirSrc (rsrcDir dirs)
       return ()
 
    exitSuccess
@@ -131,6 +131,7 @@ data Options = Options
    , optDelete :: Bool
    , optHelp :: Bool
    , optPrefix :: FilePath
+   , optQuietRsrc :: Bool
    , optVersion :: Bool
    }
 
@@ -140,6 +141,7 @@ defaultOptions = Options
    , optDelete = False
    , optHelp = False
    , optPrefix = defaultPrefix
+   , optQuietRsrc = False
    , optVersion = True
    }
 
@@ -173,6 +175,9 @@ options =
    , Option ['p'] ["prefix"]
       (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
       (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION" defaultPrefix defaultPrefix)
+   , Option [] ["quiet-resources"]
+      (NoArg (\opts -> opts { optQuietRsrc = True } ))
+      "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
    , Option ['V'] ["no-version"]
       (NoArg (\opts -> opts { optVersion = False } ))
       (printf "Do not include version in installation path, meaning: %s/PROJECT" defaultPrefix)
@@ -231,10 +236,10 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
    Many thanks to [abuzittin gillifirca](https://codereview.stackexchange.com/users/20251/abuzittin-gillifirca) for the StackOverflow post [Copying files in Haskell](https://codereview.stackexchange.com/questions/68908/copying-files-in-haskell) where the following code was lifted.
 -}
 
-copyTree s t = do
+copyTree chatty s t = do
     createDirectoryIfMissing True t
     subItems <- getSubitems s
-    mapM_ (copyItem s t) subItems
+    mapM_ (copyItem chatty s t) subItems
 
 
 getSubitems :: FilePath -> IO [(Bool, FilePath)]
@@ -250,11 +255,13 @@ getSubitems path = getSubitems' ""
         ((isDir, relPath) :) . concat <$> mapM getSubitems' relChildren
 
 
-copyItem baseSourcePath baseTargetPath (isDir, relativePath) = do
+copyItem chatty baseSourcePath baseTargetPath (isDir, relativePath) = do
     let sourcePath = baseSourcePath </> relativePath
     let targetPath = baseTargetPath </> relativePath
 
-    putStrLn $ "Copying " ++ sourcePath ++ " to " ++ targetPath
+    when chatty $
+       putStrLn $ "Copying " ++ sourcePath ++ " to " ++ targetPath
+
     if isDir
       then createDirectoryIfMissing False targetPath
       else copyFile sourcePath targetPath
