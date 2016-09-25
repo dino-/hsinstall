@@ -236,6 +236,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
    Many thanks to [abuzittin gillifirca](https://codereview.stackexchange.com/users/20251/abuzittin-gillifirca) for the StackOverflow post [Copying files in Haskell](https://codereview.stackexchange.com/questions/68908/copying-files-in-haskell) where the following code was lifted.
 -}
 
+copyTree :: Bool -> FilePath -> FilePath -> IO ()
 copyTree chatty s t = do
     createDirectoryIfMissing True t
     subItems <- getSubitems s
@@ -255,6 +256,7 @@ getSubitems path = getSubitems' ""
         ((isDir, relPath) :) . concat <$> mapM getSubitems' relChildren
 
 
+copyItem :: Bool -> FilePath -> FilePath -> (Bool, FilePath) -> IO ()
 copyItem chatty baseSourcePath baseTargetPath (isDir, relativePath) = do
     let sourcePath = baseSourcePath </> relativePath
     let targetPath = baseTargetPath </> relativePath
