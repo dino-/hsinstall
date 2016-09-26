@@ -23,7 +23,7 @@ import Text.Read
 
 defaultOptions :: Options
 defaultOptions = Options
-   { optClean = True
+   { optClean = False
    , optDelete = False
    , optHelp = False
    , optPrefix = "/opt"
@@ -160,9 +160,9 @@ readInstallType s =
 
 options :: [OptDescr (Options -> Options)]
 options =
-   [ Option ['C'] ["no-clean"]
-      (NoArg (\opts -> opts { optClean = False } ))
-      "Do not do 'stack clean' first"
+   [ Option ['c'] ["clean"]
+      (NoArg (\opts -> opts { optClean = True } ))
+      "Do 'stack clean' first"
    , Option ['d'] ["delete"]
       (NoArg (\opts -> opts { optDelete = True } ))
       "Delete the app directory before copying files"
@@ -176,6 +176,9 @@ options =
    , Option [] ["quiet-resources"]
       (NoArg (\opts -> opts { optQuietRsrc = True } ))
       "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
+   , Option ['v'] ["version"]
+      (NoArg (\opts -> opts { optVersion = True } ))
+      (printf "Include version in installation path, meaning: %s/PROJECT-VERSION  This is the default." (optPrefix defaultOptions))
    , Option ['V'] ["no-version"]
       (NoArg (\opts -> opts { optVersion = False } ))
       (printf "Do not include version in installation path, meaning: %s/PROJECT" (optPrefix defaultOptions))
