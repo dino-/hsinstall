@@ -1,7 +1,6 @@
 module Main where
 
-import System.Environment ( getExecutablePath )
-import System.FilePath ( (</>), takeDirectory )
+import HSInstall ( getRsrcPath )
 
 import Paths_hsinstall ( getDataDir )
 
@@ -10,10 +9,12 @@ main :: IO ()
 main = do
    putStrLn "Running..."
 
-   putStrLn =<< ("env executable path: " ++) <$> getExecutablePath
-   putStrLn =<< ("cabal data dir: " ++) <$> getDataDir
+   fooPath <- getRsrcPath getDataDir "foo"
+   putStrLn $ "foo resource file path: " ++ fooPath
 
-   rsrcPath <- ( </> "resources" ) . takeDirectory . takeDirectory <$> getExecutablePath
-   putStrLn $ "resources path: " ++ rsrcPath
+   readFile fooPath >>= putStr
 
-   ( readFile $ rsrcPath </> "foo" ) >>= putStr
+   barPath <- getRsrcPath getDataDir "bar"
+   putStrLn $ "bar resource file path: " ++ barPath
+
+   readFile barPath >>= putStr
