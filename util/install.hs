@@ -25,6 +25,17 @@ defaultPrefix :: FilePath
 defaultPrefix = "/opt"
 
 
+defaultOptions :: Options
+defaultOptions = Options
+   { optClean = True
+   , optDelete = False
+   , optHelp = False
+   , optPrefix = defaultPrefix
+   , optQuietRsrc = False
+   , optVersion = True
+   }
+
+
 main :: IO ()
 main = do
    -- Parse args
@@ -133,16 +144,6 @@ data Options = Options
    , optPrefix :: FilePath
    , optQuietRsrc :: Bool
    , optVersion :: Bool
-   }
-
-defaultOptions :: Options
-defaultOptions = Options
-   { optClean = True
-   , optDelete = False
-   , optHelp = False
-   , optPrefix = defaultPrefix
-   , optQuietRsrc = False
-   , optVersion = True
    }
 
 
