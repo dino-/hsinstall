@@ -16,8 +16,11 @@ getRsrcDir cabalDataDir =
 
    where
       searchResult :: IO (Maybe FilePath)
-      searchResult = foldl (liftM2 mplus) (return Nothing)
-         $ (map (>>= mbExists) [ mkRsrcPathFHS cabalDataDir, mkRsrcPathBundle ])
+      searchResult = foldl (liftM2 mplus) (return Nothing) $ map (>>= mbExists)
+         [ mkRsrcPathFHS cabalDataDir
+         , mkRsrcPathFHSNoVer cabalDataDir
+         , mkRsrcPathBundle
+         ]
 
       mbExists :: FilePath -> IO (Maybe FilePath)
       mbExists p = do
@@ -30,6 +33,16 @@ mkRsrcPathFHS cabalDataDir = do
    appDir <- takeFileName <$> cabalDataDir
    ( </> "share" </> appDir </> "resources" ) . takeDirectory . takeDirectory
       <$> getExecutablePath
+
+
+mkRsrcPathFHSNoVer :: IO FilePath -> IO FilePath
+mkRsrcPathFHSNoVer cabalDataDir = do
+   appDir <- takeFileName <$> cabalDataDir
+   ( </> "share" </> (removeVersion appDir) </> "resources" ) . takeDirectory . takeDirectory
+      <$> getExecutablePath
+
+   where
+      removeVersion = init . reverse . dropWhile (/= '-') . reverse
 
 
 mkRsrcPathBundle :: IO FilePath
