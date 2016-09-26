@@ -21,16 +21,12 @@ import Text.Printf
 import Text.Read
 
 
-defaultPrefix :: FilePath
-defaultPrefix = "/opt"
-
-
 defaultOptions :: Options
 defaultOptions = Options
    { optClean = True
    , optDelete = False
    , optHelp = False
-   , optPrefix = defaultPrefix
+   , optPrefix = "/opt"
    , optQuietRsrc = False
    , optVersion = True
    }
@@ -175,13 +171,14 @@ options =
       "This help information"
    , Option ['p'] ["prefix"]
       (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
-      (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION" defaultPrefix defaultPrefix)
+      (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION"
+         (optPrefix defaultOptions) (optPrefix defaultOptions))
    , Option [] ["quiet-resources"]
       (NoArg (\opts -> opts { optQuietRsrc = True } ))
       "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
    , Option ['V'] ["no-version"]
       (NoArg (\opts -> opts { optVersion = False } ))
-      (printf "Do not include version in installation path, meaning: %s/PROJECT" defaultPrefix)
+      (printf "Do not include version in installation path, meaning: %s/PROJECT" (optPrefix defaultOptions))
    ]
 
 
