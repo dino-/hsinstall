@@ -17,10 +17,11 @@ extra-source-files:  stack.yaml
                      util/install.hs
 
 executable an-app
-  hs-source-dirs:      src
-  main-is:             Main.hs
-  ghc-options:         -Wall
-  build-depends:       base
+   hs-source-dirs:     src
+   main-is:            Main.hs
+   ghc-options:        -Wall
+   build-depends:      base
+                     , directory
                      , filepath
   default-language:    Haskell2010
 
