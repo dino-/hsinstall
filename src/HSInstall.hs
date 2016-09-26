@@ -1,40 +1,37 @@
 module HSInstall
-   ( getRsrcPath )
+   ( getRsrcDir
+   )
    where
 
 import Control.Monad ( liftM2, mplus )
-import System.Directory ( doesFileExist )
+import System.Directory ( doesDirectoryExist )
 import System.Environment ( getExecutablePath )
 import System.FilePath ( (</>), takeDirectory, takeFileName )
 
 
-getRsrcPath :: IO FilePath -> FilePath -> IO FilePath
-getRsrcPath cabalDataDir rel =
-   maybe (fail ("Unable to find resource at relative path: " ++ rel))
+getRsrcDir :: IO FilePath -> IO FilePath
+getRsrcDir cabalDataDir =
+   maybe (fail "Unable to find resources directory")
       return =<< searchResult
 
    where
       searchResult :: IO (Maybe FilePath)
       searchResult = foldl (liftM2 mplus) (return Nothing)
-         $ (map (>>= mbExists) potentialPaths)
-
-      potentialPaths :: [IO FilePath]
-      potentialPaths = map ($ rel)
-         [ mkRsrcPathFHS cabalDataDir, mkRsrcPathBundle ]
+         $ (map (>>= mbExists) [ mkRsrcPathFHS cabalDataDir, mkRsrcPathBundle ])
 
       mbExists :: FilePath -> IO (Maybe FilePath)
       mbExists p = do
-         exists <- doesFileExist p
+         exists <- doesDirectoryExist p
          return $ if exists then Just p else Nothing
 
 
-mkRsrcPathFHS :: IO FilePath -> FilePath -> IO FilePath
-mkRsrcPathFHS cabalDataDir rel = do
+mkRsrcPathFHS :: IO FilePath -> IO FilePath
+mkRsrcPathFHS cabalDataDir = do
    appDir <- takeFileName <$> cabalDataDir
-   ( </> "share" </> appDir </> "resources" </> rel ) . takeDirectory . takeDirectory
+   ( </> "share" </> appDir </> "resources" ) . takeDirectory . takeDirectory
       <$> getExecutablePath
 
 
-mkRsrcPathBundle :: FilePath -> IO FilePath
-mkRsrcPathBundle rel =
-   ( </> "resources" </> rel ) . takeDirectory . takeDirectory <$> getExecutablePath
+mkRsrcPathBundle :: IO FilePath
+mkRsrcPathBundle =
+   ( </> "resources" ) . takeDirectory . takeDirectory <$> getExecutablePath
