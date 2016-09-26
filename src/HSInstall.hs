@@ -9,13 +9,18 @@ import System.FilePath ( (</>), takeDirectory, takeFileName )
 
 
 getRsrcPath :: IO FilePath -> FilePath -> IO FilePath
-getRsrcPath cabalDataDir rel = maybe (fail ("Unable to find resource at relative path: " ++ rel)) return =<< searchResult
+getRsrcPath cabalDataDir rel =
+   maybe (fail ("Unable to find resource at relative path: " ++ rel))
+      return =<< searchResult
+
    where
       searchResult :: IO (Maybe FilePath)
-      searchResult = foldl (liftM2 mplus) (return Nothing) $ (map (>>= mbExists) potentialPaths)
+      searchResult = foldl (liftM2 mplus) (return Nothing)
+         $ (map (>>= mbExists) potentialPaths)
 
       potentialPaths :: [IO FilePath]
-      potentialPaths = map ($ rel) [ mkRsrcPathFHS cabalDataDir, mkRsrcPathBundle ]
+      potentialPaths = map ($ rel)
+         [ mkRsrcPathFHS cabalDataDir, mkRsrcPathBundle ]
 
       mbExists :: FilePath -> IO (Maybe FilePath)
       mbExists p = do
@@ -26,7 +31,8 @@ getRsrcPath cabalDataDir rel = maybe (fail ("Unable to find resource at relative
 mkRsrcPathFHS :: IO FilePath -> FilePath -> IO FilePath
 mkRsrcPathFHS cabalDataDir rel = do
    appDir <- takeFileName <$> cabalDataDir
-   ( </> "share" </> appDir </> "resources" </> rel ) . takeDirectory . takeDirectory <$> getExecutablePath
+   ( </> "share" </> appDir </> "resources" </> rel ) . takeDirectory . takeDirectory
+      <$> getExecutablePath
 
 
 mkRsrcPathBundle :: FilePath -> IO FilePath
