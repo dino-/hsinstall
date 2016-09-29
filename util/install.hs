@@ -245,7 +245,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , ""
          , "install.hs was intentionally left as a script, but if you would prefer to compile it, do this:"
          , ""
-         , "  $ ghc -o util/install util/install.hs"
+         , "  $ stack ghc -- -o util/install util/install.hs"
          , ""
          , ""
          , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
