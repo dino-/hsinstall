@@ -27,7 +27,8 @@ defaultOptions = Options
    , optDelete = False
    , optHelp = False
    , optPrefix = "/opt"
-   , optQuietRsrc = False
+   , optRsrcCpVerbose = True
+   , optInstType = FHS
    , optVersion = True
    }
 
@@ -35,13 +36,10 @@ defaultOptions = Options
 main :: IO ()
 main = do
    -- Parse args
-   (opts, args) <- parseOpts =<< getArgs
+   (opts, _) <- parseOpts =<< getArgs
 
    -- User asked for help
    when (optHelp opts) $ putStrLn usageText >> exitSuccess
-
-   unless (length args == 1) $ die usageText
-   installType <- readInstallType $ head args
 
    -- Check for existence of the stack utility
    (flip unless $
@@ -56,7 +54,7 @@ main = do
    -- Parse the cabal file and extract things we need from it
    -- then pass a pile of what we know to a function to create the
    -- installation dirs
-   dirs <- constructDirs installType opts . package . packageDescription
+   dirs <- constructDirs opts . package . packageDescription
       <$> readPackageDescription normal (head cabalFiles)
 
 
@@ -84,7 +82,7 @@ main = do
    rsrcsExist <- doesDirectoryExist rsrcDirSrc
    when rsrcsExist $ do
       putStrLn $ "\nCopying resources"
-      copyTree (not . optQuietRsrc $ opts) rsrcDirSrc (rsrcDir dirs)
+      copyTree (optRsrcCpVerbose opts) rsrcDirSrc (rsrcDir dirs)
       return ()
 
    exitSuccess
@@ -98,18 +96,18 @@ data Dirs = Dirs
    }
 
 
-constructDirs :: InstallType -> Options -> PackageId -> Dirs
-constructDirs instType opts pkgId =
+constructDirs :: Options -> PackageId -> Dirs
+constructDirs opts pkgId =
    Dirs appDir binDir' (appDir </> "doc") (appDir </> "resources")
 
    where
       project = unPackageName . pkgName $ pkgId
       version = showVersion . pkgVersion $ pkgId
       versionPart = if optVersion opts then "-" ++ version else ""
-      appDir = case instType of
+      appDir = case (optInstType opts) of
          Bundle -> optPrefix opts </> (project ++ versionPart)
          FHS    -> optPrefix opts </> "share" </> (project ++ versionPart)
-      binDir' = case instType of
+      binDir' = case (optInstType opts) of
          Bundle -> appDir </> "bin"
          FHS    -> optPrefix opts </> "bin"
 
@@ -138,51 +136,80 @@ data Options = Options
    , optDelete :: Bool
    , optHelp :: Bool
    , optPrefix :: FilePath
-   , optQuietRsrc :: Bool
+   , optRsrcCpVerbose :: Bool
+   , optInstType :: InstallType
    , optVersion :: Bool
    }
 
 
 data InstallType = Bundle | FHS
+   deriving (Read, Show)
 
+{-
 instance Read InstallType where
    readsPrec _ "bundle" = [(Bundle, "")]
    readsPrec _ "fhs"    = [(FHS, "")]
    readsPrec _ _        = []
+-}
 
 
-readInstallType :: String -> IO InstallType
+readInstallType :: String -> InstallType
 readInstallType s =
    case (readEither s) of
-      Left _ -> die $ printf "Can't continue because %s is not a valid install type\n\n%s" s usageText
-      Right t -> return t
+      Left _ -> error $ printf "Can't continue because %s is not a valid install type\n\n%s" s usageText
+      Right t -> t
 
 
 options :: [OptDescr (Options -> Options)]
 options =
    [ Option ['c'] ["clean"]
       (NoArg (\opts -> opts { optClean = True } ))
-      "Do 'stack clean' first"
+      ("Do 'stack clean' first." ++ (defaultText . optClean $ defaultOptions))
+   , Option ['C'] ["no-clean"]
+      (NoArg (\opts -> opts { optClean = False } ))
+      ("Do not 'stack clean' first."
+         ++ (defaultText . not . optClean $ defaultOptions))
    , Option ['d'] ["delete"]
       (NoArg (\opts -> opts { optDelete = True } ))
-      "Delete the app directory before copying files"
+      ("Delete the app directory before copying files."
+         ++ (defaultText . optDelete $ defaultOptions))
+   , Option ['D'] ["no-delete"]
+      (NoArg (\opts -> opts { optDelete = False } ))
+      ("Do not delete the app directory before copying files."
+         ++ (defaultText . not . optDelete $ defaultOptions))
    , Option ['h'] ["help"]
       (NoArg (\opts -> opts { optHelp = True } ))
-      "This help information"
+      "This help information."
    , Option ['p'] ["prefix"]
       (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
       (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION"
          (optPrefix defaultOptions) (optPrefix defaultOptions))
-   , Option [] ["quiet-resources"]
-      (NoArg (\opts -> opts { optQuietRsrc = True } ))
-      "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
+   , Option ['r'] ["resource-copy-verbose"]
+      (NoArg (\opts -> opts { optRsrcCpVerbose = True } ))
+      ("Be chatty when copying the resources directory."
+         ++ (defaultText . optRsrcCpVerbose $ defaultOptions))
+   , Option ['R'] ["no-resource-copy-verbose"]
+      (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
+      ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
+         ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
+   , Option ['t'] ["type"]
+      (ReqArg (\s opts -> opts { optInstType = readInstallType s } ) "INST_TYPE" )
+      (printf "Installation type, see INSTALLATION TYPE below for details. Default: %s"
+         (show . optInstType $ defaultOptions))
    , Option ['v'] ["version"]
       (NoArg (\opts -> opts { optVersion = True } ))
-      (printf "Include version in installation path, meaning: %s/PROJECT-VERSION  This is the default." (optPrefix defaultOptions))
+      (printf "Include version in installation path, meaning: %s/PROJECT-VERSION %s"
+         (optPrefix defaultOptions) (defaultText . optVersion $ defaultOptions))
    , Option ['V'] ["no-version"]
       (NoArg (\opts -> opts { optVersion = False } ))
-      (printf "Do not include version in installation path, meaning: %s/PROJECT" (optPrefix defaultOptions))
+      (printf "Do not include version in installation path, meaning: %s/PROJECT %s"
+         (optPrefix defaultOptions) (defaultText . not . optVersion $ defaultOptions))
    ]
+
+
+defaultText :: Bool -> String
+defaultText True  = " Default"
+defaultText False = ""
 
 
 parseOpts :: [String] -> IO (Options, [String])
@@ -196,15 +223,16 @@ usageText :: String
 usageText = (usageInfo header options) ++ "\n" ++ footer
    where
       header = init $ unlines
-         [ "Usage: install.hs [OPTIONS] INST_TYPE"
+         [ "Usage: install.hs [OPTIONS]"
          , ""
          , "options:"
          ]
       footer = init $ unlines
-         [ ""
-         , "INST_TYPE is the topology used when copying files, one of: bundle, fhs"
+         [ "INSTALLATION TYPE"
          , ""
-         , "bundle is sort-of a self-contained structure like this:"
+         , "This is the topology used when copying files, one of: Bundle, FHS"
+         , ""
+         , "Bundle is sort-of a self-contained structure like this:"
          , ""
          , "  $PREFIX/"
          , "    $PROJECT-$VERSION/    <-- this is the \"app directory\""
@@ -212,7 +240,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "      doc/LICENSE"
          , "      resources/..."
          , ""
-         , "fhs is the more traditional UNIX structure like this:"
+         , "FHS is the more traditional UNIX structure like this:"
          , ""
          , "  $PREFIX/"
          , "    bin/..."
@@ -221,7 +249,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "        doc/LICENSE"
          , "        resources/..."
          , ""
-         , "Be aware that when the --delete switch is used along with fhs type, the binaries WILL NOT be deleted, only the \"app directory\"."
+         , "Be aware that when the --delete switch is used along with FHS type, the binaries WILL NOT be deleted, only the \"app directory\"."
          , ""
          , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
          ]
