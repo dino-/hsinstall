@@ -251,6 +251,13 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , ""
          , "Be aware that when the --delete switch is used along with FHS type, the binaries WILL NOT be deleted, only the \"app directory\"."
          , ""
+         , "COMPILING"
+         , ""
+         , "install.hs was intentionally left as a script, but if you would prefer to compile it, do this:"
+         , ""
+         , "  $ ghc -o util/install util/install.hs"
+         , ""
+         , ""
          , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
          ]
 
