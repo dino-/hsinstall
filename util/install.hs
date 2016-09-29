@@ -69,7 +69,8 @@ main = do
    when (optClean opts) $ system "stack clean" >> return ()
 
    -- Copy the binaries
-   system $ "stack install --local-bin-path=" ++ (binDir dirs)
+   installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
+   unless (ok installExitCode) $ die "Can't continue because stack install failed"
 
    -- Copy the license
    putStrLn "\nCopying LICENSE"
