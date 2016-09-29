@@ -32,6 +32,8 @@ defaultOptions = Options
    , optVersion = True
    }
 
+data InstallType = Bundle | FHS
+
 
 main :: IO ()
 main = do
@@ -142,15 +144,14 @@ data Options = Options
    }
 
 
-data InstallType = Bundle | FHS
-   deriving (Read, Show)
-
-{-
 instance Read InstallType where
    readsPrec _ "bundle" = [(Bundle, "")]
    readsPrec _ "fhs"    = [(FHS, "")]
    readsPrec _ _        = []
--}
+
+instance Show InstallType where
+   show Bundle = "bundle"
+   show FHS = "fhs"
 
 
 readInstallType :: String -> InstallType
@@ -230,9 +231,9 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
       footer = init $ unlines
          [ "INSTALLATION TYPE"
          , ""
-         , "This is the topology used when copying files, one of: Bundle, FHS"
+         , "This is the topology used when copying files, one of: bundle, fhs"
          , ""
-         , "Bundle is sort-of a self-contained structure like this:"
+         , "bundle is sort-of a self-contained structure like this:"
          , ""
          , "  $PREFIX/"
          , "    $PROJECT-$VERSION/    <-- this is the \"app directory\""
@@ -240,7 +241,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "      doc/LICENSE"
          , "      resources/..."
          , ""
-         , "FHS is the more traditional UNIX structure like this:"
+         , "fhs is the more traditional UNIX structure like this:"
          , ""
          , "  $PREFIX/"
          , "    bin/..."
@@ -249,7 +250,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "        doc/LICENSE"
          , "        resources/..."
          , ""
-         , "Be aware that when the --delete switch is used along with FHS type, the binaries WILL NOT be deleted, only the \"app directory\"."
+         , "Be aware that when the --delete switch is used along with fhs type, the binaries WILL NOT be deleted, only the \"app directory\"."
          , ""
          , "COMPILING"
          , ""
