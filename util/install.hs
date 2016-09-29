@@ -44,10 +44,6 @@ main = do
    -- User asked for help
    when (optHelp opts) $ putStrLn usageText >> exitSuccess
 
-   -- Check for existence of the stack utility
-   (flip unless $
-      die "Can't continue because we can't find the stack utility") =<< stackExists
-
    -- Locate cabal file
    cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
 
@@ -113,14 +109,6 @@ constructDirs opts pkgId =
       binDir' = case (optInstType opts) of
          Bundle -> appDir </> "bin"
          FHS    -> optPrefix opts </> "bin"
-
-
-stackExists :: IO Bool
-stackExists = do
-   result <- try $ readProcessWithExitCode "stack" ["--version"] ""
-   return $ case result of
-      Left  (_ :: IOException) -> False
-      Right (ec, _, _)         -> ok ec
 
 
 {- Turn an exit code (say, from system) into a Bool
