@@ -1,6 +1,5 @@
 module HSInstall
-   ( getRsrcDir
-   )
+   ( getRsrcDir )
    where
 
 import Control.Monad ( liftM2, mplus )
@@ -9,6 +8,17 @@ import System.Environment ( getExecutablePath )
 import System.FilePath ( (</>), takeDirectory, takeFileName )
 
 
+{- |
+   Get the path to the resources, relative to where the binary was
+   installed and executed from
+
+   Usage:
+
+      import HSInstall ( getRsrcDir )
+      import Paths_your_project ( getDataDir )
+
+      resourcesDir <- getRsrcDir getDataDir
+-}
 getRsrcDir :: IO FilePath -> IO FilePath
 getRsrcDir cabalDataDir =
    maybe (fail "Unable to find resources directory")
