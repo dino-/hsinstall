@@ -67,17 +67,22 @@ libraries that ship with the GHC.
 ## Development
 
 For developers who need to build against a local copy of hsinstall
-I found this technique useful. Clone a copy of the source code and
-install it locally:
+I found this technique useful. Get a copy of the source code:
 
       $ darcs clone http://hub.darcs.net/dino/hsinstall
-      $ cd hsinstall
-      $ stack install
+
+or
+
+      $ stack unpack hsinstall
 
 In another project (nearby on your system, say), modify `stack.yaml`:
 
-      extra-package-dbs:
-      - ../hsinstall/.stack-work/install/x86_64-linux/lts-7.0/8.0.1/pkgdb
+      packages:
+      - '.'
+      - location: /cfs/devA/projects/lib/hsinstall-1.1
+        extra-dep: true
+      extra-deps:
+      - hsinstall-1.1
 
 And then you should be able to build against this copy of
 hsinstall. Of course, these are just examples, the version numbers
