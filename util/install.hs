@@ -27,13 +27,14 @@ defaultOptions = Options
    { optClean = False
    , optDelete = False
    , optHelp = False
+   , optLink = False
    , optPrefix = "/opt"
    , optRsrcCpVerbose = True
    , optInstType = FHS
    , optVersion = True
    }
 
-data InstallType = Bundle | FHS
+data InstallType = Bundle | FHS deriving Eq
 
 
 main :: IO ()
@@ -92,11 +93,24 @@ main = do
       copyTree (optRsrcCpVerbose opts) rsrcDirSrc (rsrcDir dirs)
       return ()
 
+   -- Make the symlink
+   when (optLink opts) $ do
+      if (optInstType opts == FHS) then
+         putStrLn "No link will be made because installation type is fhs"
+      else if (not . optVersion $ opts) then
+         putStrLn "No link will be made because the app dir already has no version part"
+      else do
+         printf "Making symbolic link now %s -> %s\n" (linkPath dirs) (appDir dirs)
+         system $ printf "rm %s" (linkPath dirs)
+         system $ printf "ln -s %s %s" (appDir dirs) (linkPath dirs)
+         return ()
+
    exitSuccess
 
 
 data Dirs = Dirs
    { appDir :: FilePath
+   , linkPath :: FilePath
    , binDir :: FilePath
    , docDir :: FilePath
    , rsrcDir :: FilePath
@@ -105,17 +119,18 @@ data Dirs = Dirs
 
 constructDirs :: Options -> PackageId -> Dirs
 constructDirs opts pkgId =
-   Dirs appDir binDir' (appDir </> "doc") (appDir </> "resources")
+   Dirs appDir' linkPath' binDir' (appDir' </> "doc") (appDir' </> "resources")
 
    where
       project = unPackageName . pkgName $ pkgId
       version = showVersion . pkgVersion $ pkgId
       versionPart = if optVersion opts then "-" ++ version else ""
-      appDir = case (optInstType opts) of
+      appDir' = case (optInstType opts) of
          Bundle -> optPrefix opts </> (project ++ versionPart)
          FHS    -> optPrefix opts </> "share" </> (project ++ versionPart)
+      linkPath' = optPrefix opts </> project
       binDir' = case (optInstType opts) of
-         Bundle -> appDir </> "bin"
+         Bundle -> appDir' </> "bin"
          FHS    -> optPrefix opts </> "bin"
 
 
@@ -134,6 +149,7 @@ data Options = Options
    { optClean :: Bool
    , optDelete :: Bool
    , optHelp :: Bool
+   , optLink :: Bool
    , optPrefix :: FilePath
    , optRsrcCpVerbose :: Bool
    , optInstType :: InstallType
@@ -178,6 +194,14 @@ options =
    , Option ['h'] ["help"]
       (NoArg (\opts -> opts { optHelp = True } ))
       "This help information."
+   , Option ['l'] ["link"]
+      (NoArg (\opts -> opts { optLink = True } ))
+      ("Create symlink PROJECT -> PROJECT-VERSION in PREFIX dir. Only useful for bundle installations. Does not work on Windows."
+         ++ (defaultText . optLink $ defaultOptions))
+   , Option ['L'] ["no-link"]
+      (NoArg (\opts -> opts { optLink = True } ))
+      ("Do not create symlink PROJECT -> PROJECT-VERSION in PREFIX dir."
+         ++ (defaultText . not . optLink $ defaultOptions))
    , Option ['p'] ["prefix"]
       (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
       (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION"
@@ -233,6 +257,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "bundle is sort-of a self-contained structure like this:"
          , ""
          , "  $PREFIX/"
+         , "    $PROJECT -> $PROJECT-$VERSION    <-- if --link was specified"
          , "    $PROJECT-$VERSION/    <-- this is the \"app directory\""
          , "      bin/..."
          , "      doc/LICENSE"
