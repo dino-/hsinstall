@@ -1,5 +1,5 @@
 name:                hsinstall
-version:             1.2
+version:             1.3
 synopsis:            Install Haskell software
 description:         This is a utility to install Haskell programs on a system using stack. Even though stack has an `install` command, I found it to be not enough for my needs. This software tries to install the binaries, the LICENSE file and also the resources directory if it finds one. There is also an optional library component to assist with locating installed data files at runtime.
 homepage:            
