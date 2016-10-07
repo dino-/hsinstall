@@ -72,6 +72,13 @@ main = do
    installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
    unless (ok installExitCode) $ die "Can't continue because stack install failed"
 
+   -- Copy additional scripts
+   {-
+   putStrLn "Copying additional scripts"
+   mapM_ (\f -> copyFile ("util" </> f) (binDir dirs </> f))
+      [ "script1.sh", "script2.hs" ]
+   -}
+
    -- Copy the license
    putStrLn "\nCopying LICENSE"
    createDirectoryIfMissing True $ docDir dirs
