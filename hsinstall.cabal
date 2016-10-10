@@ -16,7 +16,9 @@ tested-with:         GHC >= 8.0.1
 data-files:          resources/foo
 extra-source-files:  README.md
                      resources/foo
+                     stack.yaml
                      util/install.hs
+                     util/prefs/boring
 
 executable an-app
    hs-source-dirs:     app
