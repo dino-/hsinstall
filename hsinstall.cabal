@@ -14,7 +14,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 tested-with:         GHC >= 8.0.1
 data-files:          resources/foo
-extra-source-files:  README.md
+extra-source-files:  changelog.md
+                     README.md
                      resources/foo
                      stack.yaml
                      util/install.hs
