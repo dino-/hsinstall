@@ -1,3 +1,9 @@
+1.5 (2016-10-16)
+
+   * Now creating bin directory prior to stack install
+   * Removed comments from auto-generated stack.yaml
+
+
 1.4 (2016-10-11)
 
    * Added missing files to extra-source-files
