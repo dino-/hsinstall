@@ -70,6 +70,7 @@ main = do
    when (optClean opts) $ system "stack clean" >> return ()
 
    -- Copy the binaries
+   createDirectoryIfMissing True $ binDir dirs
    installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
    unless (ok installExitCode) $ die "Can't continue because stack install failed"
 
