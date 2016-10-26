@@ -1,0 +1,86 @@
+% hsinstall.tex
+\begin{hcarentry}[new]{hsinstall}
+\report{Dino Morelli}
+\status{stable, actively developed}
+\makeheader
+
+\vspace{5mm}
+
+This is a utility to install Haskell programs on a system using
+stack. Although stack does have an `install` command, it only copies
+binaries. Sometimes more is needed, other files and some directory
+structure. hsinstall tries to install the binaries, the LICENSE
+file and also the resources directory if it finds one.
+
+\vspace{5mm}
+
+Installations can be performed in one of two directory
+structures. FHS, or the Filesystem Hierarchy Standard (most UNIX-like
+systems) and what I call "bundle" which is a portable directory
+for the app and all of its files. They look like this:
+
+\vspace{5mm}
+
+bundle is sort-of a self-contained structure like this:
+
+\vspace{5mm}
+
+\begin{verbatim}
+     $PREFIX/
+       $PROJECT-$VERSION/
+         bin/...
+         doc/LICENSE
+         resources/...
+\end{verbatim}
+
+\vspace{5mm}
+
+fhs is the more traditional UNIX structure like this:
+
+\vspace{5mm}
+
+\begin{verbatim}
+     $PREFIX/
+       bin/...
+       share/
+         $PROJECT-$VERSION/
+           doc/LICENSE
+           resources/...
+\end{verbatim}
+
+\vspace{5mm}
+
+There are two parts to hsinstall that are intended to work 
+together. The first part is a Haskell shell script,
+`util/install.hs`. Take a copy of this script and check it into
+a project you're working on. This will be your installation
+script. Running the script with the `--help` switch will explain
+the options. Near the top of the script are default values for
+these options that should be tuned to what your project needs.
+
+\vspace{5mm}
+
+The other part of hsinstall is a library. The install script will try
+to install a `resources` directory if it finds one. the HSInstall
+library can then be used in your code to locate the resources
+at runtime.
+
+\vspace{5mm}
+
+Note that you only need the library if your software has data files
+it needs to locate at runtime in the installation directories. Many
+programs don't have this requirement and can ignore the library
+altogether.
+
+\vspace{5mm}
+
+Source code is available on darcshub, Hackage and Stackage
+
+\FurtherReading
+\begin{compactitem}
+ \item hsinstall on darcshub \url{http://hub.darcs.net/dino/hsinstall}
+ \item hsinstall on Hackage \url{https://hackage.haskell.org/package/hsinstall}
+ \item hsinstall on Stackage \url{https://www.stackage.org/package/hsinstall}
+\end{compactitem}
+
+\end{hcarentry}
