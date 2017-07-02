@@ -1,3 +1,13 @@
+1.6 (2017-07-01)
+
+   * Changed base lower bound from 4.9 to 4.8
+   * Updated stack snapshot to lts-8.21
+   * Added HCAR listing content
+   * Removed defunct cabal stability field
+   * Adjusted some documentation in the README
+   * Moved copyright date up to 2017
+
+
 1.5 (2016-10-16)
 
    * Now creating bin directory prior to stack install
