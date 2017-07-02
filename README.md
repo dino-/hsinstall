@@ -79,10 +79,10 @@ In another project (nearby on your system, say), modify `stack.yaml`:
 
       packages:
       - '.'
-      - location: /path/to/hsinstall-1.3
+      - location: /path/to/hsinstall-x.y
         extra-dep: true
       extra-deps:
-      - hsinstall-1.3
+      - hsinstall-x.y
 
 And then you should be able to build against this copy of
 hsinstall. Of course, these are just examples, the version numbers
