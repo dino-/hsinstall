@@ -7,7 +7,7 @@ license:             ISC
 license-file:        LICENSE
 author:              Dino Morelli
 maintainer:          Dino Morelli <dino@ui3.info>
-copyright:           2016 Dino Morelli
+copyright:           2016-2017 Dino Morelli
 category:            Utility
 build-type:          Simple
 cabal-version:       >=1.10
