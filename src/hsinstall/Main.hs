@@ -1,17 +1,10 @@
-#! /usr/bin/env stack
-{- stack runghc -}
-
-{-# LANGUAGE ScopedTypeVariables #-}
-
-import Control.Exception
 import Control.Monad
 import Data.List
 import Data.Version
 import Distribution.Package
-import Distribution.PackageDescription hiding ( error, options )
+import Distribution.PackageDescription hiding ( options )
 import Distribution.PackageDescription.Parse
 import Distribution.Verbosity
-import Distribution.Version
 import System.Console.GetOpt
 import System.Directory
 import System.Environment
@@ -28,7 +21,7 @@ defaultOptions = Options
    , optDelete = False
    , optHelp = False
    , optLink = False
-   , optPrefix = "/opt"
+   , optPrefix = "AppDir/usr"
    , optRsrcCpVerbose = True
    , optInstType = FHS
    , optVersion = True
@@ -102,8 +95,9 @@ main = do
          putStrLn "No link will be made because the app dir already has no version part"
       else do
          printf "Making symbolic link now %s -> %s\n" (linkPath dirs) (appDir dirs)
-         system $ printf "rm %s" (linkPath dirs)
-         system $ printf "ln -s %s %s" (appDir dirs) (linkPath dirs)
+         _ <- system $ printf "rm %s" (linkPath dirs)
+         -- FIXME We should be doing some error checking here and possible exiting early with meaningful codes!
+         _ <- system $ printf "ln -s %s %s" (appDir dirs) (linkPath dirs)
          return ()
 
    exitSuccess
@@ -306,7 +300,7 @@ copyTree chatty s t = do
 getSubitems :: FilePath -> IO [(Bool, FilePath)]
 getSubitems path = getSubitems' ""
   where
-    getChildren path =  (\\ [".", ".."]) <$> getDirectoryContents path
+    getChildren path' =  (\\ [".", ".."]) <$> getDirectoryContents path'
 
     getSubitems' relPath = do
         let absPath = path </> relPath
