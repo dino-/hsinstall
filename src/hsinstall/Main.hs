@@ -12,7 +12,6 @@ import System.Exit
 import System.FilePath
 import System.Process
 import Text.Printf
-import Text.Read
 
 
 defaultOptions :: Options
@@ -20,14 +19,10 @@ defaultOptions = Options
    { optClean = False
    , optDelete = False
    , optHelp = False
-   , optLink = False
    , optPrefix = "AppDir/usr"
    , optRsrcCpVerbose = True
-   , optInstType = FHS
    , optVersion = True
    }
-
-data InstallType = Bundle | FHS deriving Eq
 
 
 main :: IO ()
@@ -36,7 +31,7 @@ main = do
    (opts, _) <- parseOpts =<< getArgs
 
    -- User asked for help
-   when (optHelp opts) $ putStrLn usageText >> exitSuccess
+   when (optHelp opts) $ usageText >>= putStrLn >> exitSuccess
 
    -- Locate cabal file
    cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
@@ -87,25 +82,11 @@ main = do
       copyTree (optRsrcCpVerbose opts) rsrcDirSrc (rsrcDir dirs)
       return ()
 
-   -- Make the symlink
-   when (optLink opts) $ do
-      if (optInstType opts == FHS) then
-         putStrLn "No link will be made because installation type is fhs"
-      else if (not . optVersion $ opts) then
-         putStrLn "No link will be made because the app dir already has no version part"
-      else do
-         printf "Making symbolic link now %s -> %s\n" (linkPath dirs) (appDir dirs)
-         _ <- system $ printf "rm %s" (linkPath dirs)
-         -- FIXME We should be doing some error checking here and possible exiting early with meaningful codes!
-         _ <- system $ printf "ln -s %s %s" (appDir dirs) (linkPath dirs)
-         return ()
-
    exitSuccess
 
 
 data Dirs = Dirs
    { appDir :: FilePath
-   , linkPath :: FilePath
    , binDir :: FilePath
    , docDir :: FilePath
    , rsrcDir :: FilePath
@@ -114,19 +95,14 @@ data Dirs = Dirs
 
 constructDirs :: Options -> PackageId -> Dirs
 constructDirs opts pkgId =
-   Dirs appDir' linkPath' binDir' (appDir' </> "doc") (appDir' </> "resources")
+   Dirs appDir' binDir' (appDir' </> "doc") (appDir' </> "resources")
 
    where
       project = unPackageName . pkgName $ pkgId
       version = showVersion . pkgVersion $ pkgId
       versionPart = if optVersion opts then "-" ++ version else ""
-      appDir' = case (optInstType opts) of
-         Bundle -> optPrefix opts </> (project ++ versionPart)
-         FHS    -> optPrefix opts </> "share" </> (project ++ versionPart)
-      linkPath' = optPrefix opts </> project
-      binDir' = case (optInstType opts) of
-         Bundle -> appDir' </> "bin"
-         FHS    -> optPrefix opts </> "bin"
+      appDir' = optPrefix opts </> "share" </> (project ++ versionPart)
+      binDir' = optPrefix opts </> "bin"
 
 
 {- Turn an exit code (say, from system) into a Bool
@@ -144,29 +120,10 @@ data Options = Options
    { optClean :: Bool
    , optDelete :: Bool
    , optHelp :: Bool
-   , optLink :: Bool
    , optPrefix :: FilePath
    , optRsrcCpVerbose :: Bool
-   , optInstType :: InstallType
    , optVersion :: Bool
    }
-
-
-instance Read InstallType where
-   readsPrec _ "bundle" = [(Bundle, "")]
-   readsPrec _ "fhs"    = [(FHS, "")]
-   readsPrec _ _        = []
-
-instance Show InstallType where
-   show Bundle = "bundle"
-   show FHS = "fhs"
-
-
-readInstallType :: String -> InstallType
-readInstallType s =
-   case (readEither s) of
-      Left _ -> error $ printf "Can't continue because %s is not a valid install type\n\n%s" s usageText
-      Right t -> t
 
 
 options :: [OptDescr (Options -> Options)]
@@ -189,18 +146,9 @@ options =
    , Option ['h'] ["help"]
       (NoArg (\opts -> opts { optHelp = True } ))
       "This help information."
-   , Option ['l'] ["link"]
-      (NoArg (\opts -> opts { optLink = True } ))
-      ("Create symlink PROJECT -> PROJECT-VERSION in PREFIX dir. Only useful for bundle installations. Does not work on Windows."
-         ++ (defaultText . optLink $ defaultOptions))
-   , Option ['L'] ["no-link"]
-      (NoArg (\opts -> opts { optLink = True } ))
-      ("Do not create symlink PROJECT -> PROJECT-VERSION in PREFIX dir."
-         ++ (defaultText . not . optLink $ defaultOptions))
    , Option ['p'] ["prefix"]
       (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
-      (printf "Install prefix directory. Defaults to %s so what you'll end up with is %s/PROJECT-VERSION"
-         (optPrefix defaultOptions) (optPrefix defaultOptions))
+      (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))
    , Option ['r'] ["resource-copy-verbose"]
       (NoArg (\opts -> opts { optRsrcCpVerbose = True } ))
       ("Be chatty when copying the resources directory."
@@ -209,10 +157,6 @@ options =
       (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
       ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
          ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
-   , Option ['t'] ["type"]
-      (ReqArg (\s opts -> opts { optInstType = readInstallType s } ) "INST_TYPE" )
-      (printf "Installation type, see INSTALLATION TYPE below for details. Default: %s"
-         (show . optInstType $ defaultOptions))
    , Option ['v'] ["version"]
       (NoArg (\opts -> opts { optVersion = True } ))
       (printf "Include version in installation path, meaning: %s/PROJECT-VERSION %s"
@@ -233,32 +177,26 @@ parseOpts :: [String] -> IO (Options, [String])
 parseOpts args =
    case getOpt Permute options args of
       (o,n,[]  ) -> return (foldl (flip id) defaultOptions o, n)
-      (_,_,errs) -> ioError $ userError (concat errs ++ usageText)
+      (_,_,errs) -> do
+        ut <- usageText
+        ioError $ userError (concat errs ++ ut)
 
 
-usageText :: String
-usageText = (usageInfo header options) ++ "\n" ++ footer
+usageText :: IO String
+usageText = do
+   progName <- getProgName
+   return $ (usageInfo (header progName) options) ++ "\n" ++ footer
+
    where
-      header = init $ unlines
-         [ "Usage: install.hs [OPTIONS]"
+      header progName = init $ unlines
+         [ "Usage: " ++ progName ++ " [OPTIONS]"
          , ""
          , "options:"
          ]
       footer = init $ unlines
-         [ "INSTALLATION TYPE"
+         [ "INSTALLATION DIRECTORY TOPOLOGY"
          , ""
-         , "This is the topology used when copying files, one of: bundle, fhs"
-         , ""
-         , "bundle is sort-of a self-contained structure like this:"
-         , ""
-         , "  $PREFIX/"
-         , "    $PROJECT -> $PROJECT-$VERSION    <-- if --link was specified"
-         , "    $PROJECT-$VERSION/    <-- this is the \"app directory\""
-         , "      bin/..."
-         , "      doc/LICENSE"
-         , "      resources/..."
-         , ""
-         , "fhs is the more traditional UNIX structure like this:"
+         , "The directory layout will be a traditional UNIX structure, also known as the FHS. Like this:"
          , ""
          , "  $PREFIX/"
          , "    bin/..."
@@ -267,14 +205,7 @@ usageText = (usageInfo header options) ++ "\n" ++ footer
          , "        doc/LICENSE"
          , "        resources/..."
          , ""
-         , "Be aware that when the --delete switch is used along with fhs type, the binaries WILL NOT be deleted, only the \"app directory\"."
-         , ""
-         , "COMPILING"
-         , ""
-         , "install.hs was intentionally left as a script, but if you would prefer to compile it, do this:"
-         , ""
-         , "  $ stack ghc -- -o util/install util/install.hs"
-         , ""
+         , "Be aware that when the --delete switch is used the binaries in `PREFIX/bin` WILL NOT be deleted, only the \"app directory\"."
          , ""
          , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
          ]
