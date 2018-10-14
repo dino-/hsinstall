@@ -1,10 +1,11 @@
 import Control.Monad
 import Data.List
-import Data.Version
+import Data.Version ( showVersion )
 import Distribution.Package
 import Distribution.PackageDescription hiding ( options )
 import Distribution.PackageDescription.Parse
 import Distribution.Verbosity
+import Paths_hsinstall ( version )
 import System.Console.GetOpt
 import System.Directory
 import System.Environment
@@ -99,8 +100,8 @@ constructDirs opts pkgId =
 
    where
       project = unPackageName . pkgName $ pkgId
-      version = showVersion . pkgVersion $ pkgId
-      versionPart = if optVersion opts then "-" ++ version else ""
+      version' = showVersion . pkgVersion $ pkgId
+      versionPart = if optVersion opts then "-" ++ version' else ""
       appDir' = optPrefix opts </> "share" </> (project ++ versionPart)
       binDir' = optPrefix opts </> "bin"
 
@@ -200,7 +201,7 @@ usageText = do
          , ""
          , "Be aware that when the --delete switch is used the binaries in `PREFIX/bin` WILL NOT be deleted, only the \"app directory\"."
          , ""
-         , "This script is part of the hsinstall package by Dino Morelli <dino@ui3.info>"
+         , "Version " ++ (showVersion version) ++ "  Dino Morelli <dino@ui3.info>"
          ]
 
 
