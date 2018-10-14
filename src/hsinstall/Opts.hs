@@ -38,30 +38,23 @@ options :: [OptDescr (Options -> Options)]
 options =
   [ Option ['c'] ["clean"]
     (NoArg (\opts -> opts { optClean = True } ))
-    ("Do 'stack clean' first." ++ (defaultText . optClean $ defaultOptions))
+    "Do 'stack clean' first"
   , Option ['d'] ["delete"]
     (NoArg (\opts -> opts { optDelete = True } ))
-    ("Delete the app directory before copying files."
-      ++ (defaultText . optDelete $ defaultOptions))
+    "Delete the app directory before copying files"
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
-    "This help information."
+    "This help information"
   , Option ['p'] ["prefix"]
     (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
     (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))
   , Option ['R'] ["resource-copy-quiet"]
     (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
-    ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
-      ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
+    "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
   , Option [] ["version"]
     (NoArg (\opts -> opts { optVersion = True } ))
     "Show version information"
   ]
-
-
-defaultText :: Bool -> String
-defaultText True  = " Default"
-defaultText False = ""
 
 
 parseOpts :: [String] -> IO (Options, [String])
