@@ -60,7 +60,7 @@ main = do
    -- Copy the binaries
    createDirectoryIfMissing True $ binDir dirs
    installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
-   unless (ok installExitCode) $ die "Can't continue because stack install failed"
+   unless (installExitCode == ExitSuccess) $ die "Can't continue because stack install failed"
 
    -- Copy additional scripts
    {-
@@ -103,13 +103,6 @@ constructDirs opts pkgId =
       versionPart = if optVersion opts then "-" ++ version else ""
       appDir' = optPrefix opts </> "share" </> (project ++ versionPart)
       binDir' = optPrefix opts </> "bin"
-
-
-{- Turn an exit code (say, from system) into a Bool
--}
-ok :: ExitCode -> Bool
-ok ExitSuccess = True
-ok _           = False
 
 
 {-
