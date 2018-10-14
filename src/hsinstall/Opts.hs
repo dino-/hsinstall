@@ -39,29 +39,17 @@ options =
   [ Option ['c'] ["clean"]
     (NoArg (\opts -> opts { optClean = True } ))
     ("Do 'stack clean' first." ++ (defaultText . optClean $ defaultOptions))
-  , Option ['C'] ["no-clean"]
-    (NoArg (\opts -> opts { optClean = False } ))
-    ("Do not 'stack clean' first."
-      ++ (defaultText . not . optClean $ defaultOptions))
   , Option ['d'] ["delete"]
     (NoArg (\opts -> opts { optDelete = True } ))
     ("Delete the app directory before copying files."
       ++ (defaultText . optDelete $ defaultOptions))
-  , Option ['D'] ["no-delete"]
-    (NoArg (\opts -> opts { optDelete = False } ))
-    ("Do not delete the app directory before copying files."
-      ++ (defaultText . not . optDelete $ defaultOptions))
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
     "This help information."
   , Option ['p'] ["prefix"]
     (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
     (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))
-  , Option ['r'] ["resource-copy-verbose"]
-    (NoArg (\opts -> opts { optRsrcCpVerbose = True } ))
-    ("Be chatty when copying the resources directory."
-      ++ (defaultText . optRsrcCpVerbose $ defaultOptions))
-  , Option ['R'] ["no-resource-copy-verbose"]
+  , Option ['R'] ["resource-copy-quiet"]
     (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
     ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
       ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
