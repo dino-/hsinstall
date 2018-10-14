@@ -22,7 +22,7 @@ defaultOptions = Options
    , optHelp = False
    , optPrefix = "AppDir/usr"
    , optRsrcCpVerbose = True
-   , optVersion = True
+   -- , optVersion = True
    }
 
 
@@ -101,8 +101,7 @@ constructDirs opts pkgId =
    where
       project = unPackageName . pkgName $ pkgId
       version' = showVersion . pkgVersion $ pkgId
-      versionPart = if optVersion opts then "-" ++ version' else ""
-      appDir' = optPrefix opts </> "share" </> (project ++ versionPart)
+      appDir' = optPrefix opts </> "share" </> (printf "%s-%s" project version')
       binDir' = optPrefix opts </> "bin"
 
 
@@ -116,7 +115,7 @@ data Options = Options
    , optHelp :: Bool
    , optPrefix :: FilePath
    , optRsrcCpVerbose :: Bool
-   , optVersion :: Bool
+   -- , optVersion :: Bool
    }
 
 
@@ -151,14 +150,10 @@ options =
       (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
       ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
          ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
-   , Option ['v'] ["version"]
-      (NoArg (\opts -> opts { optVersion = True } ))
-      (printf "Include version in installation path, meaning: %s/PROJECT-VERSION %s"
-         (optPrefix defaultOptions) (defaultText . optVersion $ defaultOptions))
-   , Option ['V'] ["no-version"]
-      (NoArg (\opts -> opts { optVersion = False } ))
-      (printf "Do not include version in installation path, meaning: %s/PROJECT %s"
-         (optPrefix defaultOptions) (defaultText . not . optVersion $ defaultOptions))
+   -- , Option ['v'] ["version"]
+   --    (NoArg (\opts -> opts { optVersion = True } ))
+   --    (printf "Include version in installation path, meaning: %s/PROJECT-VERSION %s"
+   --       (optPrefix defaultOptions) (defaultText . optVersion $ defaultOptions))
    ]
 
 
