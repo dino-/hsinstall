@@ -22,7 +22,7 @@ defaultOptions = Options
    , optHelp = False
    , optPrefix = "AppDir/usr"
    , optRsrcCpVerbose = True
-   -- , optVersion = True
+   , optVersion = False
    }
 
 
@@ -33,6 +33,9 @@ main = do
 
    -- User asked for help
    when (optHelp opts) $ usageText >>= putStrLn >> exitSuccess
+
+   -- User asked for version
+   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
    -- Locate cabal file
    cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
@@ -115,7 +118,7 @@ data Options = Options
    , optHelp :: Bool
    , optPrefix :: FilePath
    , optRsrcCpVerbose :: Bool
-   -- , optVersion :: Bool
+   , optVersion :: Bool
    }
 
 
@@ -150,10 +153,9 @@ options =
       (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
       ("Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
          ++ (defaultText . not . optRsrcCpVerbose $ defaultOptions))
-   -- , Option ['v'] ["version"]
-   --    (NoArg (\opts -> opts { optVersion = True } ))
-   --    (printf "Include version in installation path, meaning: %s/PROJECT-VERSION %s"
-   --       (optPrefix defaultOptions) (defaultText . optVersion $ defaultOptions))
+   , Option [] ["version"]
+      (NoArg (\opts -> opts { optVersion = True } ))
+      "Show version information"
    ]
 
 
@@ -198,6 +200,12 @@ usageText = do
          , ""
          , "Version " ++ (showVersion version) ++ "  Dino Morelli <dino@ui3.info>"
          ]
+
+
+formattedVersion :: IO String
+formattedVersion = do
+  progName <- getProgName
+  return $ printf "%s %s" progName (showVersion version)
 
 
 {-
