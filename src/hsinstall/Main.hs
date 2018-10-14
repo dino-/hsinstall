@@ -1,19 +1,26 @@
-import Control.Monad
-import Data.List
+import Control.Monad ( unless, when )
+import Data.List ( isSuffixOf )
 import Data.Version ( showVersion )
 import Distribution.Package
-import Distribution.PackageDescription hiding ( options )
-import Distribution.PackageDescription.Parse
+  ( PackageId
+  , PackageIdentifier (pkgName, pkgVersion)
+  , PackageName (unPackageName)
+  )
+import Distribution.PackageDescription
+  ( GenericPackageDescription (packageDescription)
+  , PackageDescription (package)
+  )
+import Distribution.PackageDescription.Parse ( readPackageDescription )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Distribution.Verbosity ( normal, silent, verbose )
 import Paths_hsinstall ( version )
 import System.Console.GetOpt
-import System.Directory
-import System.Environment
-import System.Exit
-import System.FilePath
-import System.Process
-import Text.Printf
+import qualified System.Directory as Dir
+import System.Environment ( getArgs, getProgName )
+import System.Exit ( ExitCode (ExitSuccess), die, exitSuccess )
+import System.FilePath ( (</>) )
+import System.Process ( system )
+import Text.Printf ( printf )
 
 
 defaultOptions :: Options
@@ -39,7 +46,8 @@ main = do
    when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
    -- Locate cabal file
-   cabalFiles <- (filter $ isSuffixOf ".cabal") <$> getDirectoryContents "."
+   cabalFiles <- (filter $ isSuffixOf ".cabal")
+      <$> Dir.getDirectoryContents "."
 
    when (null cabalFiles) $ do
       die "Can't continue because no cabal files were found in ."
@@ -54,16 +62,16 @@ main = do
    -- Perform the installation
 
    -- Remove existing install directory
-   appDirExists <- doesDirectoryExist $ appDir dirs
+   appDirExists <- Dir.doesDirectoryExist $ appDir dirs
    when (optDelete opts && appDirExists) $ do
       putStrLn $ "Removing existing directory " ++ (appDir dirs)
-      removeDirectoryRecursive $ appDir dirs
+      Dir.removeDirectoryRecursive $ appDir dirs
 
    -- Clean before building
    when (optClean opts) $ system "stack clean" >> return ()
 
    -- Copy the binaries
-   createDirectoryIfMissing True $ binDir dirs
+   Dir.createDirectoryIfMissing True $ binDir dirs
    installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
    unless (installExitCode == ExitSuccess) $ die "Can't continue because stack install failed"
 
@@ -76,12 +84,12 @@ main = do
 
    -- Copy the license
    putStrLn "\nCopying LICENSE"
-   createDirectoryIfMissing True $ docDir dirs
-   copyFile "LICENSE" (docDir dirs </> "LICENSE")
+   Dir.createDirectoryIfMissing True $ docDir dirs
+   Dir.copyFile "LICENSE" (docDir dirs </> "LICENSE")
 
    -- Copy the resources
    let rsrcDirSrc = "." </> "resources"
-   rsrcsExist <- doesDirectoryExist rsrcDirSrc
+   rsrcsExist <- Dir.doesDirectoryExist rsrcDirSrc
    when rsrcsExist $ do
       putStrLn $ "\nCopying resources"
       copyTree (optRsrcCpVerbose opts) rsrcDirSrc (rsrcDir dirs)
