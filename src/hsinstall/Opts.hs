@@ -89,7 +89,7 @@ usageText = do
       , "        doc/LICENSE"
       , "        resources/..."
       , ""
-      , "Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the \"app directory\"."
+      , "Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the \"app directory\" <PREFIX>/share/<PROJECT>-<VERSION>."
       , ""
       , "Version " ++ (showVersion version) ++ "  Dino Morelli <dino@ui3.info>"
       ]
