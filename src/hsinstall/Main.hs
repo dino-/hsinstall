@@ -1,17 +1,18 @@
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
-import Data.Version ( showVersion )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
-  , PackageName (unPackageName)
   )
 import Distribution.PackageDescription
   ( GenericPackageDescription (packageDescription)
   , PackageDescription (package)
   )
-import Distribution.PackageDescription.Parse ( readPackageDescription )
+import Distribution.PackageDescription.Parsec
+  ( readGenericPackageDescription )
+import Distribution.Pretty ( prettyShow )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
+import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal, silent, verbose )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
@@ -45,7 +46,7 @@ main = do
   -- then pass a pile of what we know to a function to create the
   -- installation dirs
   dirs <- constructDirs opts . package . packageDescription
-    <$> readPackageDescription normal (head cabalFiles)
+    <$> readGenericPackageDescription normal (head cabalFiles)
 
 
   -- Perform the installation
@@ -101,7 +102,7 @@ constructDirs opts pkgId =
 
   where
     project = unPackageName . pkgName $ pkgId
-    version' = showVersion . pkgVersion $ pkgId
+    version' = prettyShow . pkgVersion $ pkgId
     appDir' = optPrefix opts </> "share" </> (printf "%s-%s" project version')
     binDir' = optPrefix opts </> "bin"
 
