@@ -51,11 +51,11 @@ main = do
 
   -- Perform the installation
 
-  -- Remove existing install directory
-  appDirExists <- Dir.doesDirectoryExist $ appDir dirs
-  when (optDelete opts && appDirExists) $ do
-    putStrLn $ "Removing existing directory " ++ (appDir dirs)
-    Dir.removeDirectoryRecursive $ appDir dirs
+  -- Remove existing application directory (the one down in PREFIX/share)
+  shareDirExists <- Dir.doesDirectoryExist $ shareDir dirs
+  when (optDelete opts && shareDirExists) $ do
+    putStrLn $ "Removing existing directory " ++ (shareDir dirs)
+    Dir.removeDirectoryRecursive $ shareDir dirs
 
   -- Clean before building
   when (optClean opts) $ system "stack clean" >> return ()
@@ -91,7 +91,7 @@ main = do
 data Dirs = Dirs
   { prefixDir :: FilePath
   , binDir :: FilePath
-  , appDir :: FilePath
+  , shareDir :: FilePath
   , docDir :: FilePath
   , rsrcDir :: FilePath
   }
@@ -99,7 +99,7 @@ data Dirs = Dirs
 
 constructDirs :: Options -> PackageId -> Dirs
 constructDirs opts pkgId =
-  Dirs prefixDir' binDir' appDir' (appDir' </> "doc") (appDir' </> "resources")
+  Dirs prefixDir' binDir' shareDir' (shareDir' </> "doc") (shareDir' </> "resources")
 
   where
     prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ e </> "usr")
@@ -107,4 +107,4 @@ constructDirs opts pkgId =
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    appDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')
+    shareDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')

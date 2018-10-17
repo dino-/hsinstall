@@ -41,7 +41,7 @@ options =
     "Do 'stack clean' first"
   , Option ['d'] ["delete"]
     (NoArg (\opts -> opts { optDelete = True } ))
-    "Delete the app directory before copying files"
+    "Delete the share directory before copying files"
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
     "This help information"
@@ -87,11 +87,11 @@ usageText = do
       , "  <PREFIX>/"
       , "    bin/..."
       , "    share/"
-      , "      <PROJECT>-<VERSION>/  <-- this is the \"app directory\""
+      , "      <PROJECT>-<VERSION>/  <-- this is the share directory"
       , "        doc/LICENSE"
       , "        resources/..."
       , ""
-      , "Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the \"app directory\" <PREFIX>/share/<PROJECT>-<VERSION>."
+      , "Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the share directory: <PREFIX>/share/<PROJECT>-<VERSION>"
       , ""
       , "Version " ++ (showVersion version) ++ "  Dino Morelli <dino@ui3.info>"
       ]
