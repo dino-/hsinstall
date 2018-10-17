@@ -62,7 +62,8 @@ main = do
 
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir dirs
-  installExitCode <- system $ "stack install --local-bin-path=" ++ (binDir dirs)
+  let exePart = maybe "" (':' :) $ optExecutable opts
+  installExitCode <- system $ printf "stack install %s --local-bin-path=%s" exePart (binDir dirs)
   unless (installExitCode == ExitSuccess) $ die "Can't continue because stack install failed"
 
   -- Copy additional scripts
