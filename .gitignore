@@ -1,5 +1,5 @@
-# Vim swap files
-*.sw?
+# Stack uses this directory as scratch space.
+/.stack-work/
 
-# stack build artifacts
-.stack-work/
+# Stack generates the Cabal file from `package.yaml` through hpack.
+/*.cabal
