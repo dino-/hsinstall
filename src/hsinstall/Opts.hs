@@ -17,6 +17,7 @@ defaultOptions :: Options
 defaultOptions = Options
   { optClean = False
   , optDelete = False
+  , optExecutable = Nothing
   , optHelp = False
   , optPrefix = "AppDir/usr"
   , optVersion = False
@@ -26,6 +27,7 @@ defaultOptions = Options
 data Options = Options
   { optClean :: Bool
   , optDelete :: Bool
+  , optExecutable :: Maybe String
   , optHelp :: Bool
   , optPrefix :: FilePath
   , optVersion :: Bool
@@ -52,10 +54,15 @@ options =
   ]
 
 
-parseOpts :: [String] -> IO (Options, [String])
+parseOpts :: [String] -> IO Options
 parseOpts args =
   case getOpt Permute options args of
-    (o,n,[]  ) -> return (foldl (flip id) defaultOptions o, n)
+    (o,n,[]  ) -> do
+      let oApplied = foldl (flip id) defaultOptions o
+      let oWithExe = case n of
+            (executable : _) -> oApplied { optExecutable = Just executable }
+            _                -> oApplied
+      return oWithExe
     (_,_,errs) -> do
       ut <- usageText
       ioError $ userError (concat errs ++ ut)
@@ -68,7 +75,7 @@ usageText = do
 
   where
     header progName = init $ unlines
-      [ "Usage: " ++ progName ++ " [OPTIONS]"
+      [ "Usage: " ++ progName ++ " [OPTIONS] [EXECUTABLE]"
       , ""
       , "options:"
       ]

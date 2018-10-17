@@ -27,7 +27,7 @@ import Opts ( Options (..), formattedVersion, parseOpts, usageText )
 main :: IO ()
 main = do
   -- Parse args
-  (opts, _) <- parseOpts =<< getArgs
+  opts <- parseOpts =<< getArgs
 
   -- User asked for help
   when (optHelp opts) $ usageText >>= putStrLn >> exitSuccess
@@ -89,8 +89,9 @@ main = do
 
 
 data Dirs = Dirs
-  { appDir :: FilePath
+  { prefixDir :: FilePath
   , binDir :: FilePath
+  , appDir :: FilePath
   , docDir :: FilePath
   , rsrcDir :: FilePath
   }
@@ -98,10 +99,12 @@ data Dirs = Dirs
 
 constructDirs :: Options -> PackageId -> Dirs
 constructDirs opts pkgId =
-  Dirs appDir' binDir' (appDir' </> "doc") (appDir' </> "resources")
+  Dirs prefixDir' binDir' appDir' (appDir' </> "doc") (appDir' </> "resources")
 
   where
+    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ e </> "usr")
+      $ optExecutable opts
+    binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    appDir' = optPrefix opts </> "share" </> (printf "%s-%s" project version')
-    binDir' = optPrefix opts </> "bin"
+    appDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')
