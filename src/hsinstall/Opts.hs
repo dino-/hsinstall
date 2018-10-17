@@ -19,7 +19,6 @@ defaultOptions = Options
   , optDelete = False
   , optHelp = False
   , optPrefix = "AppDir/usr"
-  , optRsrcCpVerbose = True
   , optVersion = False
   }
 
@@ -29,7 +28,6 @@ data Options = Options
   , optDelete :: Bool
   , optHelp :: Bool
   , optPrefix :: FilePath
-  , optRsrcCpVerbose :: Bool
   , optVersion :: Bool
   }
 
@@ -48,9 +46,6 @@ options =
   , Option ['p'] ["prefix"]
     (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
     (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))
-  , Option ['R'] ["resource-copy-quiet"]
-    (NoArg (\opts -> opts { optRsrcCpVerbose = False } ))
-    "Don't be chatty when copying the resources directory. Useful when there are a LOT of resources."
   , Option [] ["version"]
     (NoArg (\opts -> opts { optVersion = True } ))
     "Show version information"

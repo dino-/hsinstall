@@ -13,7 +13,7 @@ import Distribution.PackageDescription.Parsec
 import Distribution.Pretty ( prettyShow )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Distribution.Types.PackageName ( unPackageName )
-import Distribution.Verbosity ( normal, silent, verbose )
+import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
 import System.Exit ( ExitCode (ExitSuccess), die, exitSuccess )
@@ -82,7 +82,7 @@ main = do
   rsrcsExist <- Dir.doesDirectoryExist rsrcDirSrc
   when rsrcsExist $ do
     putStrLn $ "\nCopying resources"
-    copyTree (optRsrcCpVerbose opts) rsrcDirSrc (rsrcDir dirs)
+    copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
     return ()
 
   exitSuccess
@@ -105,8 +105,3 @@ constructDirs opts pkgId =
     version' = prettyShow . pkgVersion $ pkgId
     appDir' = optPrefix opts </> "share" </> (printf "%s-%s" project version')
     binDir' = optPrefix opts </> "bin"
-
-
-copyTree :: Bool -> FilePath -> FilePath -> IO ()
-copyTree True  source target = copyDirectoryRecursive verbose source target
-copyTree False source target = copyDirectoryRecursive silent  source target
