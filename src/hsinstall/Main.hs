@@ -75,9 +75,12 @@ main = do
   -}
 
   -- Copy the license
-  putStrLn "\nCopying LICENSE"
-  Dir.createDirectoryIfMissing True $ docDir dirs
-  Dir.copyFile "LICENSE" (docDir dirs </> "LICENSE")
+  let licenseFile = "LICENSE"
+  licenseFileExists <- Dir.doesFileExist licenseFile
+  when licenseFileExists $ do
+    printf "\nCopying %s\n" licenseFile
+    Dir.createDirectoryIfMissing True $ docDir dirs
+    Dir.copyFile licenseFile (docDir dirs </> licenseFile)
 
   -- Copy the resources
   let rsrcDirSrc = "." </> "resources"
