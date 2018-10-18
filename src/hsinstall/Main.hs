@@ -1,4 +1,4 @@
-import Control.Monad ( when )
+import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
 import Data.Maybe ( fromJust, isNothing )
 import Distribution.Package
@@ -17,12 +17,14 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
-import System.Exit ( die, exitSuccess )
+import System.Exit ( die, exitFailure, exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
+import HSInstall ( getRsrcDir )
 import Opts ( Options (..), formattedVersion, parseOpts, usageText )
+import Paths_hsinstall ( getDataDir )
 
 
 main :: IO ()
@@ -35,6 +37,9 @@ main = do
 
   -- User asked for version
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
+
+  -- User asked for the stock icon
+  when (optDumpIcon opts) $ dumpStockIcon >> exitSuccess
 
   -- Locate cabal file
   cabalFiles <- (filter $ isSuffixOf ".cabal")
@@ -113,6 +118,20 @@ mkAppImage opts dirs = do
     , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
     , "--output=appimage"
     ]
+
+
+dumpStockIcon :: IO ()
+dumpStockIcon = do
+  resourcesDir <- getRsrcDir getDataDir
+  let iconFilename = "unix-terminal" <.> "svg"
+  let iconSourcePath = resourcesDir </> iconFilename
+
+  iconFileExists <- Dir.doesFileExist iconSourcePath
+  unless iconFileExists $ do
+    printf "Error: icon file at this path is not present! %s\n" iconSourcePath
+    exitFailure
+
+  Dir.copyFile iconSourcePath iconFilename
 
 
 data Dirs = Dirs

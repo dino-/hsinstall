@@ -17,6 +17,7 @@ defaultOptions :: Options
 defaultOptions = Options
   { optClean = False
   , optDelete = False
+  , optDumpIcon = False
   , optExecutable = Nothing
   , optHelp = False
   , optMkAppImage = False
@@ -28,6 +29,7 @@ defaultOptions = Options
 data Options = Options
   { optClean :: Bool
   , optDelete :: Bool
+  , optDumpIcon :: Bool
   , optExecutable :: Maybe String
   , optHelp :: Bool
   , optMkAppImage :: Bool
@@ -44,6 +46,9 @@ options =
   , Option ['d'] ["delete"]
     (NoArg (\opts -> opts { optDelete = True } ))
     "Delete the share directory before copying files"
+  , Option [] ["dump-stock-icon"]
+    (NoArg (\opts -> opts { optDumpIcon = True } ))
+    "Save an icon for UNIX-like terminal apps to the current working directory. This is useful for making an AppImage for the first time. The file will be 'unix-terminal.svg'"
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
     "This help information"

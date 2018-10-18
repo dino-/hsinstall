@@ -45,4 +45,5 @@ executables:
     - Cabal
     - directory
     - filepath
+    - hsinstall
     - process
