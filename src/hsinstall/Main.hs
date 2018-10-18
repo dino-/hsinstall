@@ -1,5 +1,6 @@
 import Control.Monad ( when )
 import Data.List ( isSuffixOf )
+import Data.Maybe ( fromJust, isNothing )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -17,7 +18,7 @@ import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
 import System.Exit ( die, exitSuccess )
-import System.FilePath ( (</>) )
+import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
@@ -42,6 +43,9 @@ main = do
   when (null cabalFiles) $ do
     die "Can't continue because no cabal files were found in ."
 
+  when ((isNothing $ optExecutable opts) && optMkAppImage opts) $ do
+    die "Can't continue because --appimage is only possible when a single EXECUTABLE is specified"
+
   -- Parse the cabal file and extract things we need from it
   -- then pass a pile of what we know to a function to create the
   -- installation dirs
@@ -50,6 +54,7 @@ main = do
 
   cleanup opts dirs
   deployApplication opts dirs
+  when (optMkAppImage opts) $ mkAppImage opts dirs
 
 
 cleanup :: Options -> Dirs -> IO ()
@@ -94,6 +99,20 @@ deployApplication opts dirs = do
   when rsrcsExist $ do
     putStrLn $ "\nCopying resources"
     copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
+
+
+mkAppImage :: Options -> Dirs -> IO ()
+mkAppImage opts dirs = do
+  let appDir = takeDirectory $ prefixDir dirs
+  let executable = fromJust $ optExecutable opts
+  let appImageRsrcDir = "util" </> "resources" </> "appimage"
+  callProcess "linuxdeploy-x86_64.AppImage"
+    [ "--appdir=" ++ appDir
+    , "--executable=" ++ (binDir dirs </> executable)
+    , "--desktop-file=" ++ (appImageRsrcDir </> executable <.> "desktop")
+    , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
+    , "--output=appimage"
+    ]
 
 
 data Dirs = Dirs

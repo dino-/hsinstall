@@ -19,6 +19,7 @@ defaultOptions = Options
   , optDelete = False
   , optExecutable = Nothing
   , optHelp = False
+  , optMkAppImage = False
   , optPrefix = "AppDir/usr"
   , optVersion = False
   }
@@ -29,6 +30,7 @@ data Options = Options
   , optDelete :: Bool
   , optExecutable :: Maybe String
   , optHelp :: Bool
+  , optMkAppImage :: Bool
   , optPrefix :: FilePath
   , optVersion :: Bool
   }
@@ -45,6 +47,9 @@ options =
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
     "This help information"
+  , Option ['i'] ["mk-appimage"]
+    (NoArg (\opts -> opts { optMkAppImage = True } ))
+    "Prepare the AppDir structure and build an AppImage for EXECUTABLE"
   , Option ['p'] ["prefix"]
     (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
     (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))

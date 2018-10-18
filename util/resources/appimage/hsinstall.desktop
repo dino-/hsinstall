@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=hsinstall
+Exec=hsinstall
+Icon=hsinstall
+Type=Application
+Categories=Utility;ConsoleOnly;
+Terminal=true
