@@ -48,9 +48,12 @@ main = do
   dirs <- constructDirs opts . package . packageDescription
     <$> readGenericPackageDescription normal (head cabalFiles)
 
+  cleanup opts dirs
+  deployApplication opts dirs
 
-  -- Perform the installation
 
+cleanup :: Options -> Dirs -> IO ()
+cleanup opts dirs= do
   -- Remove existing application directory (the one down in PREFIX/share)
   shareDirExists <- Dir.doesDirectoryExist $ shareDir dirs
   when (optDelete opts && shareDirExists) $ do
@@ -60,6 +63,9 @@ main = do
   -- Clean before building
   when (optClean opts) $ callProcess "stack" ["clean"]
 
+
+deployApplication :: Options -> Dirs -> IO ()
+deployApplication opts dirs = do
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir dirs
   callProcess "stack"
