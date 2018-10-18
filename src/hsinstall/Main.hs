@@ -1,4 +1,4 @@
-import Control.Monad ( unless, when )
+import Control.Monad ( when )
 import Data.List ( isSuffixOf )
 import Distribution.Package
   ( PackageId
@@ -16,9 +16,9 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
-import System.Exit ( ExitCode (ExitSuccess), die, exitSuccess )
+import System.Exit ( die, exitSuccess )
 import System.FilePath ( (</>) )
-import System.Process ( system )
+import System.Process ( callProcess )
 import Text.Printf ( printf )
 
 import Opts ( Options (..), formattedVersion, parseOpts, usageText )
@@ -58,13 +58,14 @@ main = do
     Dir.removeDirectoryRecursive $ shareDir dirs
 
   -- Clean before building
-  when (optClean opts) $ system "stack clean" >> return ()
+  when (optClean opts) $ callProcess "stack" ["clean"]
 
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir dirs
-  let exePart = maybe "" (':' :) $ optExecutable opts
-  installExitCode <- system $ printf "stack install %s --local-bin-path=%s" exePart (binDir dirs)
-  unless (installExitCode == ExitSuccess) $ die "Can't continue because stack install failed"
+  callProcess "stack"
+    [ "install", maybe "" (':' :) $ optExecutable opts
+    , "--local-bin-path=" ++ binDir dirs
+    ]
 
   -- Copy additional scripts
   {-
@@ -84,9 +85,6 @@ main = do
   when rsrcsExist $ do
     putStrLn $ "\nCopying resources"
     copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
-    return ()
-
-  exitSuccess
 
 
 data Dirs = Dirs
