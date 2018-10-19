@@ -52,7 +52,7 @@ getOpts = do
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
   when ((isNothing $ optExecutable opts) && optMkAppImage opts) $ do
-    die "Can't continue because --appimage is only possible when a single EXECUTABLE is specified"
+    die "Can't continue because --mk-appimage is only possible when a single EXECUTABLE is specified"
 
   return opts
 
