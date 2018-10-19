@@ -29,6 +29,19 @@ import Paths_hsinstall ( getDataDir )
 
 main :: IO ()
 main = do
+  opts <- getOpts
+
+  when (optDumpIcon opts) $ dumpStockIcon >> exitSuccess
+
+  dirs <- constructDirs opts
+
+  cleanup opts dirs
+  deployApplication opts dirs
+  when (optMkAppImage opts) $ mkAppImage opts dirs
+
+
+getOpts :: IO Options
+getOpts = do
   -- Parse args
   opts <- parseOpts =<< getArgs
 
@@ -38,9 +51,37 @@ main = do
   -- User asked for version
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
-  -- User asked for the stock icon
-  when (optDumpIcon opts) $ dumpStockIcon >> exitSuccess
+  when ((isNothing $ optExecutable opts) && optMkAppImage opts) $ do
+    die "Can't continue because --appimage is only possible when a single EXECUTABLE is specified"
 
+  return opts
+
+
+dumpStockIcon :: IO ()
+dumpStockIcon = do
+  resourcesDir <- getRsrcDir getDataDir
+  let iconFilename = "unix-terminal" <.> "svg"
+  let iconSourcePath = resourcesDir </> iconFilename
+
+  iconFileExists <- Dir.doesFileExist iconSourcePath
+  unless iconFileExists $ do
+    printf "Error: icon file at this path is not present! %s\n" iconSourcePath
+    exitFailure
+
+  Dir.copyFile iconSourcePath iconFilename
+
+
+data Dirs = Dirs
+  { prefixDir :: FilePath
+  , binDir :: FilePath
+  , shareDir :: FilePath
+  , docDir :: FilePath
+  , rsrcDir :: FilePath
+  }
+
+
+constructDirs :: Options -> IO Dirs
+constructDirs opts = do
   -- Locate cabal file
   cabalFiles <- (filter $ isSuffixOf ".cabal")
     <$> Dir.getDirectoryContents "."
@@ -48,18 +89,25 @@ main = do
   when (null cabalFiles) $ do
     die "Can't continue because no cabal files were found in ."
 
-  when ((isNothing $ optExecutable opts) && optMkAppImage opts) $ do
-    die "Can't continue because --appimage is only possible when a single EXECUTABLE is specified"
-
   -- Parse the cabal file and extract things we need from it
   -- then pass a pile of what we know to a function to create the
   -- installation dirs
-  dirs <- constructDirs opts . package . packageDescription
+  constructDirs' opts . package . packageDescription
     <$> readGenericPackageDescription normal (head cabalFiles)
 
-  cleanup opts dirs
-  deployApplication opts dirs
-  when (optMkAppImage opts) $ mkAppImage opts dirs
+
+constructDirs' :: Options -> PackageId -> Dirs
+constructDirs' opts pkgId =
+  Dirs prefixDir' binDir' shareDir'
+    (shareDir' </> "doc") (shareDir' </> "resources")
+
+  where
+    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ e </> "usr")
+      $ optExecutable opts
+    binDir' = prefixDir' </> "bin"
+    project = unPackageName . pkgName $ pkgId
+    version' = prettyShow . pkgVersion $ pkgId
+    shareDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')
 
 
 cleanup :: Options -> Dirs -> IO ()
@@ -118,39 +166,3 @@ mkAppImage opts dirs = do
     , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
     , "--output=appimage"
     ]
-
-
-dumpStockIcon :: IO ()
-dumpStockIcon = do
-  resourcesDir <- getRsrcDir getDataDir
-  let iconFilename = "unix-terminal" <.> "svg"
-  let iconSourcePath = resourcesDir </> iconFilename
-
-  iconFileExists <- Dir.doesFileExist iconSourcePath
-  unless iconFileExists $ do
-    printf "Error: icon file at this path is not present! %s\n" iconSourcePath
-    exitFailure
-
-  Dir.copyFile iconSourcePath iconFilename
-
-
-data Dirs = Dirs
-  { prefixDir :: FilePath
-  , binDir :: FilePath
-  , shareDir :: FilePath
-  , docDir :: FilePath
-  , rsrcDir :: FilePath
-  }
-
-
-constructDirs :: Options -> PackageId -> Dirs
-constructDirs opts pkgId =
-  Dirs prefixDir' binDir' shareDir' (shareDir' </> "doc") (shareDir' </> "resources")
-
-  where
-    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ e </> "usr")
-      $ optExecutable opts
-    binDir' = prefixDir' </> "bin"
-    project = unPackageName . pkgName $ pkgId
-    version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')
