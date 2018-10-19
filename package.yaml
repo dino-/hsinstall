@@ -23,9 +23,6 @@ ghc-options:
 - -Wincomplete-uni-patterns
 - -Wredundant-constraints
 
-# default-extensions:
-# - OverloadedStrings
-
 dependencies:
 - base >= 4.8 && < 5.0
 
