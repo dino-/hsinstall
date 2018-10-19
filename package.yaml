@@ -7,12 +7,10 @@ author: Dino Morelli
 maintainer: Dino Morelli <dino@ui3.info>
 copyright: 2016-2017 Dino Morelli
 category: Utility
-# data-files: resources/foo
 extra-source-files:
 - changelog.md
 - doc/hcar/hsinstall.tex
 - README.md
-# - resources/foo
 - stack.yaml
 
 github: dino-/hsinstall
