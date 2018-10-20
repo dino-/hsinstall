@@ -17,7 +17,7 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
-import System.Exit ( die, exitFailure, exitSuccess )
+import System.Exit ( die, exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
@@ -64,9 +64,8 @@ dumpStockIcon = do
   let iconSourcePath = resourcesDir </> iconFilename
 
   iconFileExists <- Dir.doesFileExist iconSourcePath
-  unless iconFileExists $ do
-    printf "Error: icon file at this path is not present! %s\n" iconSourcePath
-    exitFailure
+  unless iconFileExists $ die $ printf
+    "Error: icon file at this path is not present! %s\n" iconSourcePath
 
   Dir.copyFile iconSourcePath iconFilename
 
