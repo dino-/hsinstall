@@ -4,7 +4,7 @@
    directory, this library can be used to locate those files
    at runtime.
 -}
-module HSInstall
+module HSInstall.Resources
    ( getRsrcDir )
    where
 

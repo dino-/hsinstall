@@ -34,8 +34,8 @@ library:
 
 executables:
   hsinstall:
-    source-dirs: src/hsinstall
-    main: Main.hs
+    source-dirs: src/app
+    main: hsinstall.hs
     dependencies:
     - Cabal
     - directory

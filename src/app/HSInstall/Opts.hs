@@ -1,4 +1,4 @@
-module Opts
+module HSInstall.Opts
   ( Options (..)
   , formattedVersion
   , parseOpts

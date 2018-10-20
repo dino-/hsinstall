@@ -22,8 +22,8 @@ import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
-import HSInstall ( getRsrcDir )
-import Opts ( Options (..), formattedVersion, parseOpts, usageText )
+import HSInstall.Opts ( Options (..), formattedVersion, parseOpts, usageText )
+import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir )
 
 
