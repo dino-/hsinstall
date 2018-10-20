@@ -5,7 +5,7 @@ description: This is a utility to install Haskell programs on a system using sta
 license: ISC
 author: Dino Morelli
 maintainer: Dino Morelli <dino@ui3.info>
-copyright: 2016-2017 Dino Morelli
+copyright: 2016-2018 Dino Morelli
 category: Utility
 extra-source-files:
 - changelog.md
