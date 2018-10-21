@@ -8,85 +8,95 @@ Install Haskell software
 
 ## Description
 
-This is a utility to install Haskell programs on a system using
-stack. Even though stack has an `install` command, I found it to be
-not enough for my needs. This software tries to install the binaries,
-the LICENSE file and also the resources directory if it finds one.
+### OVERVIEW
 
-Installations can be performed in one of two directory
-structures. FHS, or the Filesystem Hierarchy Standard (most UNIX-like
-systems) and what I call "bundle" which is a portable directory
-for the app and all of its files. They look like this:
+hsinstall is a tool for deploying software projects into directory structures
+suitable for installation on a system. It builds upon the `stack install`
+command and adds more features. Those are:
 
-bundle is sort-of a self-contained structure like this:
+- Copying the `LICENSE` file into the deployment directory
+- Copying the `resources` directory into the deployment directory so these
+  files can be located using relative paths at runtime (more on this later in
+  RESOURCES)
+- Building the AppDir directory structure for a project and producing an
+  AppImage
 
-     $PREFIX/
-       $PROJECT-$VERSION/
-         bin/...
-         doc/LICENSE
-         resources/...
+It will be necessary to have the Haskell stack tool on your PATH:  
+https://docs.haskellstack.org/en/stable/README/
 
-fhs is the more traditional UNIX structure like this:
+If the AppImage features are desired, you must have these tools on your PATH:  
+linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases  
+linuxdeploy-plugin-appimage: https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases
 
-     $PREFIX/
-       bin/...
-       share/
-         $PROJECT-$VERSION/
-           doc/LICENSE
-           resources/...
+### MODES
 
-There are two parts to hsinstall that are intended to work 
-together. The first part is a Haskell shell script,
-`util/install.hs`. Take a copy of this script and check it into
-a project you're working on. This will be your installation
-script. Running the script with the `--help` switch will explain
-the options. Near the top of the script are default values for
-these options that should be tuned to what your project needs.
+hsinstall operates in two modes. The first is a plain deployment with no
+AppImage creation. The PREFIX will default to `AppDir/usr` and all binaries in
+the project will be deployed to `AppDir/usr/bin`.
 
-The other part of hsinstall is a library. The install script will try
-to install a `resources` directory if it finds one. the HSInstall
-library code is then used in your code to locate the resources
-at runtime.
+The second mode is intended to set up for AppImage creation and is triggered by
+specifying exactly one EXECUTABLE from the project in the arguments. This will
+change the PREFIX to `AppDir_EXECUTABLE/usr`. And ONLY that single executable
+will be copied to this `AppDir_EXECUTABLE/usr/bin` directory.
 
-Note that you only need this library if your software has data files
-it needs to locate at runtime in the installation directories. Many
-programs don't have this requirement and can ignore the library
-altogether.
+The directory layout will be a traditional UNIX structure, also known as the
+FHS. Like this:
 
-The application in this project, in the `app` dir, is a demo of
-using the library to locate resources. It has no use other than as
-a live example.
+    <PREFIX>/
+      bin/...
+      share/
+        <PROJECT>-<VERSION>/  <-- this is the share directory
+          doc/LICENSE
+          resources/...
 
-The `install.hs` script is deliberately not being compiled so that
-it's flexible and hackable by developers to serve whatever additional
-installation needs they may have for a given project. It's also
-deliberately self-contained, relying on nothing other than core
-libraries that ship with the GHC.
+Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin`
+WILL NOT be deleted, only the share directory:
+`<PREFIX>/share/<PROJECT>-<VERSION>`
+
+### APPIMAGE CREATION
+
+Even for a first-time AppImaging, this tool should produce a working AppImage.
+If missing, it will create default `.desktop` and `.svg` files in
+`util/resources/appimage`. Customize these to fit your project, and then check
+these two files into source control for future builds.
+
+The default `.desktop` file Categories will be populated with 'Utility;'. We
+recommend adjusting this using the XDG list of registered categories:
+https://specifications.freedesktop.org/menu-spec/latest/apa.html
+
+If your application is a command-line program, append this line to the end of
+the default `.desktop` file: 'Terminal=true'
+
+If your application isn't a command-line tool, we recommend using a proper icon
+instead of the hsinstall default, which is a command shell icon.
+
+### RESOURCES
+
+If present, hsinstall will deploy a `resources` directory to
+`<PREFIX>/share/PROJECT-VERSION/resources`. In order to locate these files at
+runtime, the hsinstall project includes a library to build filesystem-portable
+relative paths. See this source code for help on integrating this into your
+app:
+https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
 
 
 ## Development
 
-For developers who need to build against a local copy of hsinstall
-I found this technique useful. Get a copy of the source code:
+Browse [the source](https://github.com/dino-/hsinstall)
 
-      $ darcs clone http://hub.darcs.net/dino/hsinstall
+Get source with git and build
 
-or
+    $ git clone https://github.com/dino-/hsinstall.git
+    $ cd hsinstall
+    $ stack build
 
-      $ stack unpack hsinstall
+If you have the abovementioned `linuxdeploy-*` programs on your path, we can do
+something *really* cool. Use this freshly-built hsinstall to package itself
+into an AppImage:
 
-In another project (nearby on your system, say), modify `stack.yaml`:
+    $ stack exec hsinstall -- --mk-appimage hsinstall
 
-      packages:
-      - '.'
-      - location: /path/to/hsinstall-x.y
-        extra-dep: true
-      extra-deps:
-      - hsinstall-x.y
-
-And then you should be able to build against this copy of
-hsinstall. Of course, these are just examples, the version numbers
-above will almost certainly be different.
+And you should see an `hsinstall-x86_64.AppImage` binary in `.`
 
 
 ## Contact
