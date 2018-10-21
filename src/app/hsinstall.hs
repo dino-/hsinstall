@@ -1,6 +1,6 @@
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
-import Data.Maybe ( fromJust, isNothing )
+import Data.Maybe ( isNothing )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -22,28 +22,34 @@ import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
-import HSInstall.Opts ( Options (..), formattedVersion, parseOpts, usageText )
+import HSInstall.Opts
+  ( AppImageExe (getExe), Options (..)
+  , formattedVersion, parseOpts, usageText
+  )
 import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir )
 
 
 main :: IO ()
 main = do
-  opts <- getOpts
+  (opts, mbAppImageExe) <- getOpts
 
-  when (optDumpIcon opts) $ dumpStockIcon >> exitSuccess
+  when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
-  dirs <- constructDirs opts
+  dirs <- constructDirs opts mbAppImageExe
 
   cleanup opts dirs
-  deployApplication opts dirs
-  when (optMkAppImage opts) $ mkAppImage opts dirs
+  deployApplication mbAppImageExe dirs
+  maybe (return ()) (\aie ->
+    when (optMkAppImage opts) $
+      prepAppImageFiles aie >>= mkAppImage aie dirs
+    ) mbAppImageExe
 
 
-getOpts :: IO Options
+getOpts :: IO (Options, Maybe AppImageExe)
 getOpts = do
   -- Parse args
-  opts <- parseOpts =<< getArgs
+  allOpts@(opts, mbAppImageExe) <- parseOpts =<< getArgs
 
   -- User asked for help
   when (optHelp opts) $ usageText >>= putStrLn >> exitSuccess
@@ -51,14 +57,14 @@ getOpts = do
   -- User asked for version
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
-  when ((isNothing $ optExecutable opts) && optMkAppImage opts) $ do
+  when (isNothing mbAppImageExe && optMkAppImage opts) $ do
     die "Can't continue because --mk-appimage is only possible when a single EXECUTABLE is specified"
 
-  return opts
+  return allOpts
 
 
-dumpStockIcon :: IO ()
-dumpStockIcon = do
+dumpStockIcon :: Maybe FilePath -> IO ()
+dumpStockIcon mbDestPath = do
   resourcesDir <- getRsrcDir getDataDir
   let iconFilename = "unix-terminal" <.> "svg"
   let iconSourcePath = resourcesDir </> iconFilename
@@ -67,7 +73,9 @@ dumpStockIcon = do
   unless iconFileExists $ die $ printf
     "Error: icon file at this path is not present! %s\n" iconSourcePath
 
-  Dir.copyFile iconSourcePath iconFilename
+  let destPath = maybe iconFilename id mbDestPath
+
+  Dir.copyFile iconSourcePath destPath
 
 
 data Dirs = Dirs
@@ -79,8 +87,8 @@ data Dirs = Dirs
   }
 
 
-constructDirs :: Options -> IO Dirs
-constructDirs opts = do
+constructDirs :: Options -> Maybe AppImageExe -> IO Dirs
+constructDirs opts mbAppImageExe = do
   -- Locate cabal file
   cabalFiles <- (filter $ isSuffixOf ".cabal")
     <$> Dir.getDirectoryContents "."
@@ -91,18 +99,18 @@ constructDirs opts = do
   -- Parse the cabal file and extract things we need from it
   -- then pass a pile of what we know to a function to create the
   -- installation dirs
-  constructDirs' opts . package . packageDescription
+  constructDirs' opts mbAppImageExe . package . packageDescription
     <$> readGenericPackageDescription normal (head cabalFiles)
 
 
-constructDirs' :: Options -> PackageId -> Dirs
-constructDirs' opts pkgId =
+constructDirs' :: Options -> Maybe AppImageExe -> PackageId -> Dirs
+constructDirs' opts mbAppImageExe pkgId =
   Dirs prefixDir' binDir' shareDir'
     (shareDir' </> "doc") (shareDir' </> "resources")
 
   where
-    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ e </> "usr")
-      $ optExecutable opts
+    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ getExe e </> "usr")
+      $ mbAppImageExe
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
@@ -121,12 +129,12 @@ cleanup opts dirs= do
   when (optClean opts) $ callProcess "stack" ["clean"]
 
 
-deployApplication :: Options -> Dirs -> IO ()
-deployApplication opts dirs = do
+deployApplication :: Maybe AppImageExe -> Dirs -> IO ()
+deployApplication mbAppImageExe dirs = do
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir dirs
   callProcess "stack"
-    [ "install", maybe "" (':' :) $ optExecutable opts
+    [ "install", maybe "" (\aie -> ':' : getExe aie) $ mbAppImageExe
     , "--local-bin-path=" ++ binDir dirs
     ]
 
@@ -153,15 +161,53 @@ deployApplication opts dirs = do
     copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
 
 
-mkAppImage :: Options -> Dirs -> IO ()
-mkAppImage opts dirs = do
-  let appDir = takeDirectory $ prefixDir dirs
-  let executable = fromJust $ optExecutable opts
-  let appImageRsrcDir = "util" </> "resources" </> "appimage"
+data DesktopFileStatus = CreateNewDesktop | DesktopExists
+
+
+appImageRsrcDir :: FilePath
+appImageRsrcDir = "util" </> "resources" </> "appimage"
+
+
+prepAppImageFiles :: AppImageExe -> IO DesktopFileStatus
+prepAppImageFiles appImageExe = do
+  let exe = getExe appImageExe
+
+  -- Check and possibly create new icon
+  let iconPath = appImageRsrcDir </> exe <.> "svg"
+  iconExists <- Dir.doesFileExist iconPath
+  unless iconExists $ do
+    Dir.createDirectoryIfMissing True appImageRsrcDir
+    dumpStockIcon $ Just iconPath
+
+  -- Check desktop file, return status to caller
+  let desktopPath = appImageRsrcDir </> exe <.> "desktop"
+  desktopFileExists <- Dir.doesFileExist desktopPath
+  return $ if desktopFileExists then DesktopExists else CreateNewDesktop
+
+
+mkAppImage :: AppImageExe -> Dirs -> DesktopFileStatus -> IO ()
+
+mkAppImage appImageExe dirs DesktopExists = do
+  let desktopArg = "--desktop-file=" ++
+        (appImageRsrcDir </> getExe appImageExe <.> "desktop")
+  mkAppImage' appImageExe dirs desktopArg
+
+mkAppImage appImageExe dirs CreateNewDesktop = do
+  mkAppImage' appImageExe dirs "--create-desktop-file"
+  -- Now copy the freshly-created .desktop file into the project sources
+  let desktopFile = getExe appImageExe <.> "desktop"
+  Dir.copyFile
+    (prefixDir dirs </> "share" </> "applications" </> desktopFile)
+    (appImageRsrcDir </> desktopFile)
+
+
+mkAppImage' :: AppImageExe -> Dirs -> String -> IO ()
+mkAppImage' appImageExe dirs desktopArg = do
+  let executable = getExe appImageExe
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ appDir
+    [ "--appdir=" ++ (takeDirectory $ prefixDir dirs)
     , "--executable=" ++ (binDir dirs </> executable)
-    , "--desktop-file=" ++ (appImageRsrcDir </> executable <.> "desktop")
+    , desktopArg
     , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
     , "--output=appimage"
     ]

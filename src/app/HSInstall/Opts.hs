@@ -1,13 +1,15 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module HSInstall.Opts
-  ( Options (..)
+  ( AppImageExe (getExe)
+  , Options (..)
   , formattedVersion
   , parseOpts
   , usageText
   )
   where
 
+import Data.Maybe ( listToMaybe )
 import Data.String.Here.Interpolated ( iTrim )
 import Data.Version ( showVersion )
 import Paths_hsinstall ( version )
@@ -16,11 +18,13 @@ import System.Environment ( getProgName )
 import Text.Printf ( printf )
 
 
+newtype AppImageExe = AppImageExe { getExe :: String }
+
+
 data Options = Options
   { optClean :: Bool
   , optDelete :: Bool
   , optDumpIcon :: Bool
-  , optExecutable :: Maybe String
   , optHelp :: Bool
   , optMkAppImage :: Bool
   , optPrefix :: FilePath
@@ -33,7 +37,6 @@ defaultOptions = Options
   { optClean = False
   , optDelete = False
   , optDumpIcon = False
-  , optExecutable = Nothing
   , optHelp = False
   , optMkAppImage = False
   , optPrefix = "AppDir/usr"
@@ -67,15 +70,12 @@ options =
   ]
 
 
-parseOpts :: [String] -> IO Options
+parseOpts :: [String] -> IO (Options, Maybe AppImageExe)
 parseOpts args =
   case getOpt Permute options args of
     (o,n,[]  ) -> do
       let oApplied = foldl (flip id) defaultOptions o
-      let oWithExe = case n of
-            (executable : _) -> oApplied { optExecutable = Just executable }
-            _                -> oApplied
-      return oWithExe
+      return (oApplied, AppImageExe <$> listToMaybe n)
     (_,_,errs) -> do
       ut <- usageText
       ioError $ userError (concat errs ++ ut)
