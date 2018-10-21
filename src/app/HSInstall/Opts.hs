@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module HSInstall.Opts
   ( Options (..)
   , formattedVersion
@@ -6,11 +8,24 @@ module HSInstall.Opts
   )
   where
 
+import Data.String.Here.Interpolated ( iTrim )
 import Data.Version ( showVersion )
 import Paths_hsinstall ( version )
 import System.Console.GetOpt
 import System.Environment ( getProgName )
 import Text.Printf ( printf )
+
+
+data Options = Options
+  { optClean :: Bool
+  , optDelete :: Bool
+  , optDumpIcon :: Bool
+  , optExecutable :: Maybe String
+  , optHelp :: Bool
+  , optMkAppImage :: Bool
+  , optPrefix :: FilePath
+  , optVersion :: Bool
+  }
 
 
 defaultOptions :: Options
@@ -26,18 +41,6 @@ defaultOptions = Options
   }
 
 
-data Options = Options
-  { optClean :: Bool
-  , optDelete :: Bool
-  , optDumpIcon :: Bool
-  , optExecutable :: Maybe String
-  , optHelp :: Bool
-  , optMkAppImage :: Bool
-  , optPrefix :: FilePath
-  , optVersion :: Bool
-  }
-
-
 options :: [OptDescr (Options -> Options)]
 options =
   [ Option ['c'] ["clean"]
@@ -48,7 +51,7 @@ options =
     "Delete the share directory before copying files"
   , Option [] ["dump-stock-icon"]
     (NoArg (\opts -> opts { optDumpIcon = True } ))
-    "Save an icon for UNIX-like terminal apps to the current working directory. This is useful for making an AppImage for the first time. The file will be 'unix-terminal.svg'"
+    "Save a default icon, unix-termianl.svg, to the current working directory"
   , Option ['h'] ["help"]
     (NoArg (\opts -> opts { optHelp = True } ))
     "This help information"
@@ -81,30 +84,65 @@ parseOpts args =
 usageText :: IO String
 usageText = do
   progName <- getProgName
-  return $ (usageInfo (header progName) options) ++ "\n" ++ footer
+  return $ (usageInfo (header progName) options) ++ "\n" ++ body
 
   where
     header progName = init $ unlines
-      [ "Usage: " ++ progName ++ " [OPTIONS] [EXECUTABLE]"
+      [ "Usage: " ++ progName ++ " [OPTIONS]"
+      , "       " ++ progName ++ " [OPTIONS] [EXECUTABLE]"
       , ""
       , "options:"
       ]
-    footer = init $ unlines
-      [ "INSTALLATION DIRECTORY TOPOLOGY"
-      , ""
-      , "The directory layout will be a traditional UNIX structure, also known as the FHS. Like this:"
-      , ""
-      , "  <PREFIX>/"
-      , "    bin/..."
-      , "    share/"
-      , "      <PROJECT>-<VERSION>/  <-- this is the share directory"
-      , "        doc/LICENSE"
-      , "        resources/..."
-      , ""
-      , "Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the share directory: <PREFIX>/share/<PROJECT>-<VERSION>"
-      , ""
-      , "Version " ++ (showVersion version) ++ "  Dino Morelli <dino@ui3.info>"
-      ]
+    body = [iTrim|
+OVERVIEW
+
+hsinstall is a tool for deploying software projects into directory structures suitable for installation on a system. It builds upon the `stack install` command and adds more features. Those are:
+
+- Copying the `LICENSE` file into the deployment directory
+- Copying the `resources` directory into the deployment directory so these files can be located using relative paths at runtime (more on this later in RESOURCES)
+- Building the AppDir directory structure for a project and producing an AppImage
+
+It will be necessary to have the Haskell stack tool on your PATH:
+https://docs.haskellstack.org/en/stable/README/
+
+If the AppImage features are desired, you must have these tools on your PATH:
+linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases
+linuxdeploy-plugin-appimage: https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases
+
+MODES
+
+hsinstall operates in two modes. The first is a plain deployment with no AppImage creation. The PREFIX will defaults to `AppDir/usr` and all binaries in the project will be deployed to `AppDir/usr/bin`.
+
+The second mode is intended to set up for AppImage creation and is triggered by specifying exactly one EXECUTABLE from the project in the arguments. This will change the PREFIX to `AppDir_EXECUTABLE/usr`. And ONLY that single executable will be copied to this `AppDir_EXECUTABLE/usr/bin` directory.
+
+The directory layout will be a traditional UNIX structure, also known as the FHS. Like this:
+
+  <PREFIX>/
+    bin/...
+    share/
+      <PROJECT>-<VERSION>/  <-- this is the share directory
+        doc/LICENSE
+        resources/...
+
+Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the share directory: <PREFIX>/share/<PROJECT>-<VERSION>"
+
+APPIMAGE CREATION
+
+Even for a first-time AppImaging, this tool should produce a working AppImage. If missing, it will create default `.desktop` and `.svg` files in `util/resources/appimage`. Customize these to fit your project, and then check these two files into source control for future builds.
+
+The default .desktop file Categories will be populated with 'Utility;'. We recommend adjusting this using the XDG list of registered categories: https://specifications.freedesktop.org/menu-spec/latest/apa.html
+
+If your application is a command-line program, append this line to the end of the default .desktop file: 'Terminal=true'
+
+If your application isn't a command-line tool, we recommend using a proper icon instead of the hsinstall default, which is a command shell icon.
+
+RESOURCES
+
+If present, hsinstall will deploy a `resources` directory to `PREFIX/share/PROJECT-VERSION/resources`. In order to locate these files at runtime, the hsinstall project includes a library to build filesystem-portable relative paths. See this source code for help on integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
+
+
+Version ${showVersion version}  Dino Morelli <dino@ui3.info>
+|]
 
 
 formattedVersion :: IO String
