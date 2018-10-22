@@ -10,11 +10,11 @@ module HSInstall.Opts
   where
 
 import Data.Maybe ( listToMaybe )
-import Data.String.Here.Interpolated ( iTrim )
 import Data.Version ( showVersion )
 import Paths_hsinstall ( version )
 import System.Console.GetOpt
 import System.Environment ( getProgName )
+import Text.Heredoc ( here )
 import Text.Printf ( printf )
 
 
@@ -84,7 +84,8 @@ parseOpts args =
 usageText :: IO String
 usageText = do
   progName <- getProgName
-  return $ (usageInfo (header progName) options) ++ "\n" ++ body
+  return $ (usageInfo (header progName) options) ++ "\n" ++
+    (printf body $ showVersion version)
 
   where
     header progName = init $ unlines
@@ -93,8 +94,7 @@ usageText = do
       , ""
       , "options:"
       ]
-    body = [iTrim|
-OVERVIEW
+    body = [here|OVERVIEW
 
 hsinstall is a tool for deploying software projects into directory structures suitable for installation on a system. It builds upon the `stack install` command and adds more features. Those are:
 
@@ -141,8 +141,7 @@ RESOURCES
 If present, hsinstall will deploy a `resources` directory to `<PREFIX>/share/PROJECT-VERSION/resources`. In order to locate these files at runtime, the hsinstall project includes a library to build filesystem-portable relative paths. See this source code for help on integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
 
 
-Version ${showVersion version}  Dino Morelli <dino@ui3.info>
-|]
+Version %s  Dino Morelli <dino@ui3.info>|]
 
 
 formattedVersion :: IO String

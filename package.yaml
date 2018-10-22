@@ -45,6 +45,6 @@ executables:
     - Cabal
     - directory
     - filepath
-    - here
+    - heredoc
     - hsinstall
     - process
