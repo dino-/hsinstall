@@ -10,8 +10,13 @@ category: Utility
 extra-source-files:
 - changelog.md
 - doc/hcar/hsinstall.tex
+- .gitignore
+- package.yaml
 - README.md
+- resources/unix-terminal.svg
 - stack.yaml
+- util/resources/appimage/hsinstall.desktop
+- util/resources/appimage/hsinstall.svg
 
 github: dino-/hsinstall
 
