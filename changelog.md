@@ -1,3 +1,9 @@
+2.1 (2018-10-22)
+
+  * Switched to a a lighter-weight here-document library
+  * Updated API documentation
+
+
 2.0 (2018-10-22)
 
   * Redesigned as a binary utility to be installed on a system, not a script
