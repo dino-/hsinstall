@@ -18,8 +18,8 @@ command and adds more features. Those are:
 - Copying the `resources` directory into the deployment directory so these
   files can be located using relative paths at runtime (more on this later in
   RESOURCES)
-- Building the AppDir directory structure for a project and producing an
-  AppImage
+- Building an AppDir directory structure for a project and producing an
+  [AppImage](https://appimage.org/)
 
 It will be necessary to have the Haskell stack tool on your PATH:  
 https://docs.haskellstack.org/en/stable/README/
@@ -36,11 +36,11 @@ the project will be deployed to `AppDir/usr/bin`.
 
 The second mode is intended to set up for AppImage creation and is triggered by
 specifying exactly one EXECUTABLE from the project in the arguments. This will
-change the PREFIX to `AppDir_EXECUTABLE/usr`. And ONLY that single executable
-will be copied to this `AppDir_EXECUTABLE/usr/bin` directory.
+change the PREFIX to `AppDir_EXECUTABLE/usr`. And only that single executable
+will be copied to the `AppDir_EXECUTABLE/usr/bin` directory.
 
-The directory layout will be a traditional UNIX structure, also known as the
-FHS. Like this:
+The directory layout will be a standard [FHS](http://www.pathname.com/fhs/)
+shape, common in UNIX-like operating systems. Like this:
 
     <PREFIX>/
       bin/...
@@ -49,7 +49,7 @@ FHS. Like this:
           doc/LICENSE
           resources/...
 
-Be aware that when the --delete switch is used the binaries in `<PREFIX>/bin`
+Be aware that when the `--delete` switch is used the binaries in `<PREFIX>/bin`
 WILL NOT be deleted, only the share directory:
 `<PREFIX>/share/<PROJECT>-<VERSION>`
 
@@ -57,8 +57,8 @@ WILL NOT be deleted, only the share directory:
 
 Even for a first-time AppImaging, this tool should produce a working AppImage.
 If missing, it will create default `.desktop` and `.svg` files in
-`util/resources/appimage`. Customize these to fit your project, and then check
-these two files into source control for future builds.
+`util/resources/appimage`. Customize or replace these to fit your project, and
+then check these two files into source control for future builds.
 
 The default `.desktop` file Categories will be populated with 'Utility;'. We
 recommend adjusting this using the XDG list of registered categories:
