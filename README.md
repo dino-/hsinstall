@@ -11,8 +11,9 @@ Install Haskell software
 ### OVERVIEW
 
 hsinstall is a tool for deploying software projects into directory structures
-suitable for installation on a system. It builds upon the `stack install`
-command and adds more features. Those are:
+suitable for installation on a system. At this time this means Haskell software
+but possible future expansion could support other types of projects. It builds
+upon the `stack install` command and adds more features. Those are:
 
 - Copying the `LICENSE` file into the deployment directory
 - Copying the `resources` directory into the deployment directory so these
@@ -39,8 +40,9 @@ specifying exactly one EXECUTABLE from the project in the arguments. This will
 change the PREFIX to `AppDir_EXECUTABLE/usr`. And only that single executable
 will be copied to the `AppDir_EXECUTABLE/usr/bin` directory.
 
-The directory layout will be a standard [FHS](http://www.pathname.com/fhs/)
-shape, common in UNIX-like operating systems. Like this:
+Regardless of which mode is being used, the directory layout will be a standard
+[FHS](http://www.pathname.com/fhs/) shape, common in UNIX-like operating
+systems. Like this:
 
     <PREFIX>/
       bin/...
@@ -74,9 +76,9 @@ instead of the hsinstall default, which is a command shell icon.
 
 If present, hsinstall will deploy a `resources` directory to
 `<PREFIX>/share/PROJECT-VERSION/resources`. In order to locate these files at
-runtime, the hsinstall project includes a library to build filesystem-portable
-relative paths. See this source code for help on integrating this into your
-app:
+runtime, the hsinstall project includes a library to construct paths relative
+to the executable. See this source code for help with integrating this into
+your app:
 https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
 
 
