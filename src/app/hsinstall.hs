@@ -17,11 +17,15 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
-import System.Exit ( die, exitSuccess )
+import System.Exit ( exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
+import HSInstall.Except
+  ( HSInstallException (NoCabalFiles, OneExePerAppImage)
+  , withExceptionHandling, throwM
+  )
 import HSInstall.Opts
   ( AppImageExe (getExe), Options (..)
   , formattedVersion, parseOpts, usageText
@@ -31,7 +35,7 @@ import Paths_hsinstall ( getDataDir )
 
 
 main :: IO ()
-main = do
+main = withExceptionHandling $ do
   (opts, mbAppImageExe) <- getOpts
 
   when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
@@ -58,7 +62,7 @@ getOpts = do
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
   when (isNothing mbAppImageExe && optMkAppImage opts) $ do
-    die "Can't continue because --mk-appimage is only possible when a single EXECUTABLE is specified"
+    throwM OneExePerAppImage
 
   return allOpts
 
@@ -68,13 +72,7 @@ dumpStockIcon mbDestPath = do
   resourcesDir <- getRsrcDir getDataDir
   let iconFilename = "unix-terminal" <.> "svg"
   let iconSourcePath = resourcesDir </> iconFilename
-
-  iconFileExists <- Dir.doesFileExist iconSourcePath
-  unless iconFileExists $ die $ printf
-    "Error: icon file at this path is not present! %s\n" iconSourcePath
-
   let destPath = maybe iconFilename id mbDestPath
-
   Dir.copyFile iconSourcePath destPath
 
 
@@ -93,8 +91,7 @@ constructDirs opts mbAppImageExe = do
   cabalFiles <- (filter $ isSuffixOf ".cabal")
     <$> Dir.getDirectoryContents "."
 
-  when (null cabalFiles) $ do
-    die "Can't continue because no cabal files were found in ."
+  when (null cabalFiles) $ throwM NoCabalFiles
 
   -- Parse the cabal file and extract things we need from it
   -- then pass a pile of what we know to a function to create the
