@@ -15,6 +15,7 @@ import Distribution.Pretty ( prettyShow )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
+import HSInstall.Resources ( getRsrcDir )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
 import System.Exit ( exitSuccess )
@@ -30,7 +31,6 @@ import HSInstall.Opts
   ( AppImageExe (getExe), Options (..)
   , formattedVersion, parseOpts, usageText
   )
-import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir )
 
 
