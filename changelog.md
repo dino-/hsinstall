@@ -54,12 +54,12 @@
   * Added a tested-with line to the cabal file
 
 
-1.1 (2016-10-07)
+1.1 (2016-10-03)
 
   * Updated to stackage lts-7.2
 
 
-1.0 (2016-10-02)
+1.0 (2016-10-03)
 
   * Cleaned up cabal file
   * Wrote API docs
