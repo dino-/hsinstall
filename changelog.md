@@ -1,3 +1,9 @@
+2.2 (2018-11-07)
+
+  * Added actual exception handling
+  * Reworded usage and README text
+
+
 2.1 (2018-10-22)
 
   * Switched to a a lighter-weight here-document library
