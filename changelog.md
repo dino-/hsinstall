@@ -1,3 +1,10 @@
+2.3 (2019-03-03)
+
+  * Changed deployment dir name to EXECUTABLE.AppDir
+  * Switched all uses of Text.Printf to the Fmt library
+  * Moved Stackage resolver up to lts-13.9
+
+
 2.2 (2018-11-07)
 
   * Added actual exception handling
