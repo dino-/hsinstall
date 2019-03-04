@@ -114,7 +114,7 @@ MODES
 
 hsinstall operates in two modes. The first is a plain deployment with no AppImage creation. The PREFIX will default to `AppDir/usr` and all binaries in the project will be deployed to `AppDir/usr/bin`.
 
-The second mode is intended to set up for AppImage creation and is triggered by specifying exactly one EXECUTABLE from the project in the arguments. This will change the PREFIX to `AppDir_EXECUTABLE/usr`. And only that single executable will be copied to the `AppDir_EXECUTABLE/usr/bin` directory.
+The second mode is intended to set up for AppImage creation and is triggered by specifying exactly one EXECUTABLE from the project in the arguments. This will change the PREFIX to `EXECUTABLE.AppDir/usr`. And only that single executable will be copied to the `EXECUTABLE.AppDir/usr/bin` directory.
 
 Regardless of which mode is being used, the directory layout will be a standard FHS shape, common in UNIX-like operating systems. Like this:
 

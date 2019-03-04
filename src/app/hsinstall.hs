@@ -108,7 +108,7 @@ constructDirs' opts mbAppImageExe pkgId =
     (shareDir' </> "doc") (shareDir' </> "resources")
 
   where
-    prefixDir' = maybe (optPrefix opts) (\e -> "AppDir_" ++ getExe e </> "usr")
+    prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")
       $ mbAppImageExe
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
