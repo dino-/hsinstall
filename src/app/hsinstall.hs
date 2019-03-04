@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
 import Data.Maybe ( isNothing )
@@ -15,13 +17,13 @@ import Distribution.Pretty ( prettyShow )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
+import Fmt ( (+|), (|+), fmtLn )
 import HSInstall.Resources ( getRsrcDir )
 import qualified System.Directory as Dir
 import System.Environment ( getArgs )
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
-import Text.Printf ( printf )
 
 import HSInstall.Except
   ( HSInstallException (NoCabalFiles, OneExePerAppImage)
@@ -111,7 +113,7 @@ constructDirs' opts mbAppImageExe pkgId =
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> (printf "%s-%s" project version')
+    shareDir' = prefixDir' </> "share" </> (""+|project|+"-"+|version'|+"")
 
 
 cleanup :: Options -> Dirs -> IO ()
@@ -146,7 +148,7 @@ deployApplication mbAppImageExe dirs = do
   let licenseFile = "LICENSE"
   licenseFileExists <- Dir.doesFileExist licenseFile
   when licenseFileExists $ do
-    printf "\nCopying %s\n" licenseFile
+    fmtLn $ "\nCopying "+|licenseFile|+""
     Dir.createDirectoryIfMissing True $ docDir dirs
     Dir.copyFile licenseFile (docDir dirs </> licenseFile)
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module HSInstall.Except
@@ -11,9 +12,9 @@ module HSInstall.Except
 
 import Control.Exception.Safe
   ( Exception, Handler (..), Typeable, catches, throwM )
+import Fmt ( (+|), (|+), (+||), (||+) )
 import GHC.IO.Exception ( IOException (ioe_filename, ioe_type) )
 import System.Exit ( die )
-import Text.Printf ( printf )
 
 
 data HSInstallException
@@ -35,10 +36,10 @@ withExceptionHandling = flip catches exceptionHandlers
 exceptionHandlers :: [Handler IO a]
 exceptionHandlers =
   [ Handler (\(err :: IOException) -> explainError $
-    printf "%s%s" (show . ioe_type $ err) (maybe "" (": " ++) . ioe_filename $ err))
+      ""+||ioe_type err||+""+|(maybe "" (": " ++) (ioe_filename err))|+"")
   , Handler (\(err :: HSInstallException) -> explainError $ show err)
   ]
 
 
 explainError :: String -> IO a
-explainError = die . printf "Could not continue because: %s"
+explainError = die . ("Could not continue because: " ++)

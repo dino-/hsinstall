@@ -45,6 +45,7 @@ executables:
     - Cabal
     - directory
     - filepath
+    - fmt
     - heredoc
     - hsinstall
     - process

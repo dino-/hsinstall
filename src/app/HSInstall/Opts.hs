@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module HSInstall.Opts
@@ -11,11 +12,11 @@ module HSInstall.Opts
 
 import Data.Maybe ( listToMaybe )
 import Data.Version ( showVersion )
+import Fmt ( (+|), (|+), format )
 import Paths_hsinstall ( version )
 import System.Console.GetOpt
 import System.Environment ( getProgName )
 import Text.Heredoc ( here )
-import Text.Printf ( printf )
 
 
 newtype AppImageExe = AppImageExe { getExe :: String }
@@ -63,7 +64,7 @@ options =
     "Prepare the AppDir structure and build an AppImage for EXECUTABLE"
   , Option ['p'] ["prefix"]
     (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
-    (printf "Install prefix directory. Default: %s" (optPrefix defaultOptions))
+    ("Install prefix directory. Default: "+|optPrefix defaultOptions|+"")
   , Option [] ["version"]
     (NoArg (\opts -> opts { optVersion = True } ))
     "Show version information"
@@ -84,8 +85,8 @@ parseOpts args =
 usageText :: IO String
 usageText = do
   progName <- getProgName
-  return $ (usageInfo (header progName) options) ++ "\n" ++
-    (printf body $ showVersion version)
+  let formattedBody = (format body $ showVersion version) :: String
+  return $ ""+|usageInfo (header progName) options|+"\n"+|formattedBody|+""
 
   where
     header progName = init $ unlines
@@ -141,10 +142,10 @@ RESOURCES
 If present, hsinstall will deploy a `resources` directory to `<PREFIX>/share/PROJECT-VERSION/resources`. In order to locate these files at runtime, the hsinstall project includes a library to construct paths relative to the executable. See this source code for help with integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
 
 
-Version %s  Dino Morelli <dino@ui3.info>|]
+Version {}  Dino Morelli <dino@ui3.info>|]
 
 
 formattedVersion :: IO String
 formattedVersion = do
   progName <- getProgName
-  return $ printf "%s %s" progName (showVersion version)
+  return (""+|progName|+" "+|showVersion version|+"")
