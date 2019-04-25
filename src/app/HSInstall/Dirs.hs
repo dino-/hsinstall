@@ -48,8 +48,8 @@ data Dirs = Dirs
   }
 
 
-constructDirs :: Options -> Maybe AppImageExe -> IO Dirs
-constructDirs opts mbAppImageExe = do
+constructDirs :: Options -> IO Dirs
+constructDirs opts = do
   -- If we fail to find the cabal file, try again after a stack clean. If the
   -- project uses hpack, issuing any stack command will generate the cabal
   -- file.
@@ -58,7 +58,7 @@ constructDirs opts mbAppImageExe = do
     <> (First <$> (stackClean >> locateCabalFile)
     )
   maybe (throwM NoCabalFiles)
-    (fmap (constructDirs' opts mbAppImageExe . package . packageDescription)
+    (fmap (constructDirs' opts . package . packageDescription)
       . readGenericPackageDescription normal) mbCabalFile
 
 
@@ -67,14 +67,14 @@ locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
   <$> getDirectoryContents "."
 
 
-constructDirs' :: Options -> Maybe AppImageExe -> PackageId -> Dirs
-constructDirs' opts mbAppImageExe pkgId =
+constructDirs' :: Options -> PackageId -> Dirs
+constructDirs' opts pkgId =
   Dirs prefixDir' binDir' shareDir'
     (shareDir' </> "doc") (shareDir' </> "resources")
 
   where
     prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")
-      mbAppImageExe
+      $ optExecutable opts
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId

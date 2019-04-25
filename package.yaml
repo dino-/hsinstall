@@ -42,11 +42,13 @@ executables:
     source-dirs: src/app
     main: hsinstall.hs
     dependencies:
+    - ansi-wl-pprint
     - Cabal
     - directory
     - filepath
     - fmt
     - heredoc
     - hsinstall
+    - optparse-applicative
     - process
     - safe-exceptions

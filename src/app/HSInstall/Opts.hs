@@ -6,17 +6,16 @@ module HSInstall.Opts
   , Options (..)
   , formattedVersion
   , parseOpts
-  , usageText
   )
   where
 
-import Data.Maybe ( listToMaybe )
 import Data.Version ( showVersion )
 import Fmt ( (+|), (|+), format )
+import Options.Applicative
 import Paths_hsinstall ( version )
-import System.Console.GetOpt
 import System.Environment ( getProgName )
 import Text.Heredoc ( here )
+import Text.PrettyPrint.ANSI.Leijen ( string )
 
 
 newtype AppImageExe = AppImageExe { getExe :: String }
@@ -26,76 +25,61 @@ data Options = Options
   { optClean :: Bool
   , optDelete :: Bool
   , optDumpIcon :: Bool
-  , optHelp :: Bool
   , optMkAppImage :: Bool
   , optPrefix :: FilePath
   , optVersion :: Bool
+  , optExecutable :: Maybe AppImageExe
   }
 
 
-defaultOptions :: Options
-defaultOptions = Options
-  { optClean = False
-  , optDelete = False
-  , optDumpIcon = False
-  , optHelp = False
-  , optMkAppImage = False
-  , optPrefix = "AppDir/usr"
-  , optVersion = False
-  }
+parser :: Parser Options
+parser = Options
+  <$> switch
+      (  long "clean"
+      <> short 'c'
+      <> help "Do 'stack clean' first"
+      )
+  <*> switch
+      (  long "delete"
+      <> short 'd'
+      <> help "Delete the share directory before copying files"
+      )
+  <*> switch
+      (  long "dump-stock-icon"
+      <> help"Save a default icon, unix-termianl.svg, to the current working directory"
+      )
+  <*> switch
+      (  long "mk-appimage"
+      <> short 'i'
+      <> help "Prepare the AppDir structure and build an AppImage for EXECUTABLE"
+      )
+  <*> strOption
+      (  long "prefix"
+      <> short 'p'
+      <> showDefault
+      <> value "AppDir/usr"
+      <> metavar "PREFIX"
+      <> help "Install prefix directory."
+      )
+  <*> switch
+      (  long "version"
+      <> help "Show version information"
+      )
+  <*> optional (argument (AppImageExe <$> str)
+      $ metavar "EXECUTABLE"
+      )
 
 
-options :: [OptDescr (Options -> Options)]
-options =
-  [ Option ['c'] ["clean"]
-    (NoArg (\opts -> opts { optClean = True } ))
-    "Do 'stack clean' first"
-  , Option ['d'] ["delete"]
-    (NoArg (\opts -> opts { optDelete = True } ))
-    "Delete the share directory before copying files"
-  , Option [] ["dump-stock-icon"]
-    (NoArg (\opts -> opts { optDumpIcon = True } ))
-    "Save a default icon, unix-termianl.svg, to the current working directory"
-  , Option ['h'] ["help"]
-    (NoArg (\opts -> opts { optHelp = True } ))
-    "This help information"
-  , Option ['i'] ["mk-appimage"]
-    (NoArg (\opts -> opts { optMkAppImage = True } ))
-    "Prepare the AppDir structure and build an AppImage for EXECUTABLE"
-  , Option ['p'] ["prefix"]
-    (ReqArg (\s opts -> opts { optPrefix = s } ) "PREFIX" )
-    ("Install prefix directory. Default: "+|optPrefix defaultOptions|+"")
-  , Option [] ["version"]
-    (NoArg (\opts -> opts { optVersion = True } ))
-    "Show version information"
-  ]
+parseOpts :: IO Options
+parseOpts = execParser $ info (parser <**> helper)
+  (  header "hsinstall - Pack a haskell project into a deployable directory structure"
+  <> footer'
+  )
 
 
-parseOpts :: [String] -> IO (Options, Maybe AppImageExe)
-parseOpts args =
-  case getOpt Permute options args of
-    (o,n,[]  ) -> do
-      let oApplied = foldl (flip id) defaultOptions o
-      return (oApplied, AppImageExe <$> listToMaybe n)
-    (_,_,errs) -> do
-      ut <- usageText
-      ioError $ userError (concat errs ++ ut)
-
-
-usageText :: IO String
-usageText = do
-  progName <- getProgName
-  let formattedBody = (format body $ showVersion version) :: String
-  return $ ""+|usageInfo (header progName) options|+"\n"+|formattedBody|+""
-
-  where
-    header progName = init $ unlines
-      [ "Usage: " ++ progName ++ " [OPTIONS]"
-      , "       " ++ progName ++ " [OPTIONS] [EXECUTABLE]"
-      , ""
-      , "options:"
-      ]
-    body = [here|OVERVIEW
+footer' :: InfoMod a
+footer' = footerDoc . Just . string . format content . showVersion $ version
+    where content = [here|OVERVIEW
 
 hsinstall is a tool for deploying software projects into directory structures suitable for installation on a system. At this time this means Haskell software but possible future expansion could support other types of projects. It builds upon the `stack install` command and adds more features. Those are:
 
@@ -140,7 +124,6 @@ If your application isn't a command-line tool, we recommend using a proper icon 
 RESOURCES
 
 If present, hsinstall will deploy a `resources` directory to `<PREFIX>/share/PROJECT-VERSION/resources`. In order to locate these files at runtime, the hsinstall project includes a library to construct paths relative to the executable. See this source code for help with integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
-
 
 Version {}  Dino Morelli <dino@ui3.info>|]
 

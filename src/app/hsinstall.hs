@@ -8,7 +8,7 @@ import Fmt ( (+|), (|+), fmtLn )
 import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir, version )
 import qualified System.Directory as Dir
-import System.Environment ( getArgs, setEnv )
+import System.Environment ( setEnv )
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
@@ -24,41 +24,30 @@ import HSInstall.Except
   )
 import HSInstall.Opts
   ( AppImageExe (getExe), Options (..)
-  , formattedVersion, parseOpts, usageText
+  , formattedVersion, parseOpts
   )
 
 
 main :: IO ()
 main = withExceptionHandling $ do
-  (opts, mbAppImageExe) <- getOpts
+  opts <- parseOpts
+
+  when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
+
+  when (isNothing (optExecutable opts) && optMkAppImage opts) $
+    throwM OneExePerAppImage
 
   when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
-  dirs <- constructDirs opts mbAppImageExe
+  dirs <- constructDirs opts
 
+  let mbAppImageExe = optExecutable opts
   cleanup opts dirs
   deployApplication mbAppImageExe dirs
   maybe (return ()) (\aie ->
     when (optMkAppImage opts) $
       prepAppImageFiles aie >>= mkAppImage aie dirs
     ) mbAppImageExe
-
-
-getOpts :: IO (Options, Maybe AppImageExe)
-getOpts = do
-  -- Parse args
-  allOpts@(opts, mbAppImageExe) <- parseOpts =<< getArgs
-
-  -- User asked for help
-  when (optHelp opts) $ usageText >>= putStrLn >> exitSuccess
-
-  -- User asked for version
-  when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
-
-  when (isNothing mbAppImageExe && optMkAppImage opts) $
-    throwM OneExePerAppImage
-
-  return allOpts
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()
