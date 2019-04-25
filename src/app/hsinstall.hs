@@ -1,24 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad ( unless, when )
-import Data.List ( isSuffixOf )
-import Data.Maybe ( fromMaybe, isNothing, listToMaybe )
-import Data.Monoid ( First (..), getFirst )
+import Data.Maybe ( fromMaybe, isNothing )
 import Data.Version ( showVersion )
-import Distribution.Package
-  ( PackageId
-  , PackageIdentifier (pkgName, pkgVersion)
-  )
-import Distribution.PackageDescription
-  ( GenericPackageDescription (packageDescription)
-  , PackageDescription (package)
-  )
-import Distribution.PackageDescription.Parsec
-  ( readGenericPackageDescription )
-import Distribution.Pretty ( prettyShow )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
-import Distribution.Types.PackageName ( unPackageName )
-import Distribution.Verbosity ( normal )
 import Fmt ( (+|), (|+), fmtLn )
 import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir, version )
@@ -28,8 +13,13 @@ import System.Exit ( exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
+import HSInstall.Common ( stackClean )
+import HSInstall.Dirs
+  ( Dirs (binDir, docDir, prefixDir, rsrcDir, shareDir)
+  , constructDirs, normal
+  )
 import HSInstall.Except
-  ( HSInstallException (NoCabalFiles, OneExePerAppImage)
+  ( HSInstallException (OneExePerAppImage)
   , withExceptionHandling, throwM
   )
 import HSInstall.Opts
@@ -78,52 +68,6 @@ dumpStockIcon mbDestPath = do
   let iconSourcePath = resourcesDir </> iconFilename
   let destPath = fromMaybe iconFilename mbDestPath
   Dir.copyFile iconSourcePath destPath
-
-
-data Dirs = Dirs
-  { prefixDir :: FilePath
-  , binDir :: FilePath
-  , shareDir :: FilePath
-  , docDir :: FilePath
-  , rsrcDir :: FilePath
-  }
-
-
-constructDirs :: Options -> Maybe AppImageExe -> IO Dirs
-constructDirs opts mbAppImageExe = do
-  -- If we fail to find the cabal file, try again after a stack clean. If the
-  -- project uses hpack, issuing any stack command will generate the cabal
-  -- file.
-  mbCabalFile <- getFirst <$>
-    (   First <$> locateCabalFile)
-    <> (First <$> (stackClean >> locateCabalFile)
-    )
-  maybe (throwM NoCabalFiles)
-    (fmap (constructDirs' opts mbAppImageExe . package . packageDescription)
-      . readGenericPackageDescription normal) mbCabalFile
-
-
-locateCabalFile :: IO (Maybe FilePath)
-locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
-  <$> Dir.getDirectoryContents "."
-
-
-stackClean :: IO ()
-stackClean = callProcess "stack" ["clean"]
-
-
-constructDirs' :: Options -> Maybe AppImageExe -> PackageId -> Dirs
-constructDirs' opts mbAppImageExe pkgId =
-  Dirs prefixDir' binDir' shareDir'
-    (shareDir' </> "doc") (shareDir' </> "resources")
-
-  where
-    prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")
-      mbAppImageExe
-    binDir' = prefixDir' </> "bin"
-    project = unPackageName . pkgName $ pkgId
-    version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> (""+|project|+"-"+|version'|+"")
 
 
 cleanup :: Options -> Dirs -> IO ()
