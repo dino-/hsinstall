@@ -2,7 +2,8 @@
 
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
-import Data.Maybe ( isNothing )
+import Data.Maybe ( isNothing, listToMaybe )
+import Data.Monoid ( First (..), getFirst )
 import Data.Version ( showVersion )
 import Distribution.Package
   ( PackageId
@@ -90,17 +91,25 @@ data Dirs = Dirs
 
 constructDirs :: Options -> Maybe AppImageExe -> IO Dirs
 constructDirs opts mbAppImageExe = do
-  -- Locate cabal file
-  cabalFiles <- (filter $ isSuffixOf ".cabal")
-    <$> Dir.getDirectoryContents "."
+  -- If we fail to find the cabal file, try again after a stack clean. If the
+  -- project uses hpack, issuing any stack command will generate the cabal
+  -- file.
+  mbCabalFile <- getFirst <$>
+    (   First <$> locateCabalFile)
+    <> (First <$> (stackClean >> locateCabalFile)
+    )
+  maybe (throwM NoCabalFiles)
+    (\cf -> constructDirs' opts mbAppImageExe . package . packageDescription
+      <$> readGenericPackageDescription normal cf) mbCabalFile
 
-  when (null cabalFiles) $ throwM NoCabalFiles
 
-  -- Parse the cabal file and extract things we need from it
-  -- then pass a pile of what we know to a function to create the
-  -- installation dirs
-  constructDirs' opts mbAppImageExe . package . packageDescription
-    <$> readGenericPackageDescription normal (head cabalFiles)
+locateCabalFile :: IO (Maybe FilePath)
+locateCabalFile = (listToMaybe . (filter $ isSuffixOf ".cabal"))
+  <$> Dir.getDirectoryContents "."
+
+
+stackClean :: IO ()
+stackClean = callProcess "stack" ["clean"]
 
 
 constructDirs' :: Options -> Maybe AppImageExe -> PackageId -> Dirs
@@ -126,7 +135,7 @@ cleanup opts dirs= do
     Dir.removeDirectoryRecursive $ shareDir dirs
 
   -- Clean before building
-  when (optClean opts) $ callProcess "stack" ["clean"]
+  when (optClean opts) stackClean
 
 
 deployApplication :: Maybe AppImageExe -> Dirs -> IO ()
