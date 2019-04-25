@@ -3,6 +3,7 @@
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
 import Data.Maybe ( isNothing )
+import Data.Version ( showVersion )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -19,8 +20,9 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import Fmt ( (+|), (|+), fmtLn )
 import HSInstall.Resources ( getRsrcDir )
+import Paths_hsinstall ( getDataDir, version )
 import qualified System.Directory as Dir
-import System.Environment ( getArgs )
+import System.Environment ( getArgs, setEnv )
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
@@ -33,7 +35,6 @@ import HSInstall.Opts
   ( AppImageExe (getExe), Options (..)
   , formattedVersion, parseOpts, usageText
   )
-import Paths_hsinstall ( getDataDir )
 
 
 main :: IO ()
@@ -203,6 +204,7 @@ mkAppImage appImageExe dirs CreateNewDesktop = do
 mkAppImage' :: AppImageExe -> Dirs -> String -> IO ()
 mkAppImage' appImageExe dirs desktopArg = do
   let executable = getExe appImageExe
+  setEnv "VERSION" $ showVersion version
   callProcess "linuxdeploy-x86_64.AppImage"
     [ "--appdir=" ++ (takeDirectory $ prefixDir dirs)
     , "--executable=" ++ (binDir dirs </> executable)
