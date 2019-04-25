@@ -2,7 +2,7 @@
 
 import Control.Monad ( unless, when )
 import Data.List ( isSuffixOf )
-import Data.Maybe ( isNothing, listToMaybe )
+import Data.Maybe ( fromMaybe, isNothing, listToMaybe )
 import Data.Monoid ( First (..), getFirst )
 import Data.Version ( showVersion )
 import Distribution.Package
@@ -65,7 +65,7 @@ getOpts = do
   -- User asked for version
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
-  when (isNothing mbAppImageExe && optMkAppImage opts) $ do
+  when (isNothing mbAppImageExe && optMkAppImage opts) $
     throwM OneExePerAppImage
 
   return allOpts
@@ -76,7 +76,7 @@ dumpStockIcon mbDestPath = do
   resourcesDir <- getRsrcDir getDataDir
   let iconFilename = "unix-terminal" <.> "svg"
   let iconSourcePath = resourcesDir </> iconFilename
-  let destPath = maybe iconFilename id mbDestPath
+  let destPath = fromMaybe iconFilename mbDestPath
   Dir.copyFile iconSourcePath destPath
 
 
@@ -99,12 +99,12 @@ constructDirs opts mbAppImageExe = do
     <> (First <$> (stackClean >> locateCabalFile)
     )
   maybe (throwM NoCabalFiles)
-    (\cf -> constructDirs' opts mbAppImageExe . package . packageDescription
-      <$> readGenericPackageDescription normal cf) mbCabalFile
+    (fmap (constructDirs' opts mbAppImageExe . package . packageDescription)
+      . readGenericPackageDescription normal) mbCabalFile
 
 
 locateCabalFile :: IO (Maybe FilePath)
-locateCabalFile = (listToMaybe . (filter $ isSuffixOf ".cabal"))
+locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
   <$> Dir.getDirectoryContents "."
 
 
@@ -119,7 +119,7 @@ constructDirs' opts mbAppImageExe pkgId =
 
   where
     prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")
-      $ mbAppImageExe
+      mbAppImageExe
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
@@ -131,7 +131,7 @@ cleanup opts dirs= do
   -- Remove existing application directory (the one down in PREFIX/share)
   shareDirExists <- Dir.doesDirectoryExist $ shareDir dirs
   when (optDelete opts && shareDirExists) $ do
-    putStrLn $ "Removing existing directory " ++ (shareDir dirs)
+    putStrLn $ "Removing existing directory " ++ shareDir dirs
     Dir.removeDirectoryRecursive $ shareDir dirs
 
   -- Clean before building
@@ -143,7 +143,7 @@ deployApplication mbAppImageExe dirs = do
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir dirs
   callProcess "stack"
-    [ "install", maybe "" (\aie -> ':' : getExe aie) $ mbAppImageExe
+    [ "install", maybe "" (\aie -> ':' : getExe aie) mbAppImageExe
     , "--local-bin-path=" ++ binDir dirs
     ]
 
@@ -166,7 +166,7 @@ deployApplication mbAppImageExe dirs = do
   let rsrcDirSrc = "." </> "resources"
   rsrcsExist <- Dir.doesDirectoryExist rsrcDirSrc
   when rsrcsExist $ do
-    putStrLn $ "\nCopying resources"
+    putStrLn "\nCopying resources"
     copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
 
 
@@ -215,7 +215,7 @@ mkAppImage' appImageExe dirs desktopArg = do
   let executable = getExe appImageExe
   setEnv "VERSION" $ showVersion version
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory $ prefixDir dirs)
+    [ "--appdir=" ++ (takeDirectory . prefixDir $ dirs)
     , "--executable=" ++ (binDir dirs </> executable)
     , desktopArg
     , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")

@@ -36,7 +36,7 @@ withExceptionHandling = flip catches exceptionHandlers
 exceptionHandlers :: [Handler IO a]
 exceptionHandlers =
   [ Handler (\(err :: IOException) -> explainError $
-      ""+||ioe_type err||+""+|(maybe "" (": " ++) (ioe_filename err))|+"")
+      ""+||ioe_type err||+""+|maybe "" (": " ++) (ioe_filename err)|+"")
   , Handler (\(err :: HSInstallException) -> explainError $ show err)
   ]
 
