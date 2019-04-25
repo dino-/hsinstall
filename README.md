@@ -98,7 +98,7 @@ into an AppImage:
 
     $ stack exec hsinstall -- --mk-appimage hsinstall
 
-And you should see an `hsinstall-x86_64.AppImage` binary in `.`
+And you should see an `hsinstall-y.z-x86_64.AppImage` binary in `.`
 
 
 ## Contact
