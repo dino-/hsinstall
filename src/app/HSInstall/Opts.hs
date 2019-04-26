@@ -46,7 +46,7 @@ parser = Options
       )
   <*> switch
       (  long "dump-stock-icon"
-      <> help"Save a default icon, unix-termianl.svg, to the current working directory"
+      <> help "Save a default icon, unix-termianl.svg, to the current working directory"
       )
   <*> switch
       (  long "mk-appimage"
@@ -59,7 +59,7 @@ parser = Options
       <> showDefault
       <> value "AppDir/usr"
       <> metavar "PREFIX"
-      <> help "Install prefix directory."
+      <> help "Install prefix directory"
       )
   <*> switch
       (  long "version"
