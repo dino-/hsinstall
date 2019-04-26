@@ -5,15 +5,13 @@ module HSInstall.AppImage
   where
 
 import Control.Monad ( unless )
-import Data.Version ( showVersion )
-import Paths_hsinstall ( version )
 import qualified System.Directory as Dir
 import System.Environment ( setEnv )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
 import HSInstall.Common ( dumpStockIcon )
-import HSInstall.Dirs ( Dirs (binDir, prefixDir) )
+import HSInstall.DeploymentInfo ( DeploymentInfo (binDir, prefixDir, version) )
 import HSInstall.Opts ( AppImageExe (getExe) )
 
 
@@ -41,29 +39,29 @@ prepAppImageFiles appImageExe = do
   return $ if desktopFileExists then DesktopExists else CreateNewDesktop
 
 
-mkAppImage :: AppImageExe -> Dirs -> DesktopFileStatus -> IO ()
+mkAppImage :: AppImageExe -> DeploymentInfo -> DesktopFileStatus -> IO ()
 
-mkAppImage appImageExe dirs DesktopExists = do
+mkAppImage appImageExe di DesktopExists = do
   let desktopArg = "--desktop-file=" ++
         (appImageRsrcDir </> getExe appImageExe <.> "desktop")
-  mkAppImage' appImageExe dirs desktopArg
+  mkAppImage' appImageExe di desktopArg
 
-mkAppImage appImageExe dirs CreateNewDesktop = do
-  mkAppImage' appImageExe dirs "--create-desktop-file"
+mkAppImage appImageExe di CreateNewDesktop = do
+  mkAppImage' appImageExe di "--create-desktop-file"
   -- Now copy the freshly-created .desktop file into the project sources
   let desktopFile = getExe appImageExe <.> "desktop"
   Dir.copyFile
-    (prefixDir dirs </> "share" </> "applications" </> desktopFile)
+    (prefixDir di </> "share" </> "applications" </> desktopFile)
     (appImageRsrcDir </> desktopFile)
 
 
-mkAppImage' :: AppImageExe -> Dirs -> String -> IO ()
-mkAppImage' appImageExe dirs desktopArg = do
+mkAppImage' :: AppImageExe -> DeploymentInfo -> String -> IO ()
+mkAppImage' appImageExe di desktopArg = do
   let executable = getExe appImageExe
-  setEnv "VERSION" $ showVersion version
+  setEnv "VERSION" $ version di
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory . prefixDir $ dirs)
-    , "--executable=" ++ (binDir dirs </> executable)
+    [ "--appdir=" ++ (takeDirectory . prefixDir $ di)
+    , "--executable=" ++ (binDir di </> executable)
     , desktopArg
     , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
     , "--output=appimage"

@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HSInstall.Dirs
-  ( Dirs (..)
-  , constructDirs
+module HSInstall.DeploymentInfo
+  ( DeploymentInfo (..)
+  , constructDeploymentInfo
 
   -- re-exporting
   , normal
@@ -39,17 +39,18 @@ import HSInstall.Opts
   )
 
 
-data Dirs = Dirs
+data DeploymentInfo = DeploymentInfo
   { prefixDir :: FilePath
   , binDir :: FilePath
   , shareDir :: FilePath
   , docDir :: FilePath
   , rsrcDir :: FilePath
+  , version :: String
   }
 
 
-constructDirs :: Options -> IO Dirs
-constructDirs opts = do
+constructDeploymentInfo :: Options -> IO DeploymentInfo
+constructDeploymentInfo opts = do
   -- If we fail to find the cabal file, try again after a stack clean. If the
   -- project uses hpack, issuing any stack command will generate the cabal
   -- file.
@@ -57,7 +58,7 @@ constructDirs opts = do
        (First <$> locateCabalFile)
     <> (First <$> (stackClean >> locateCabalFile))
   maybe (throwM NoCabalFiles)
-    (fmap (constructDirs' opts . package . packageDescription)
+    (fmap (constructDeploymentInfo' opts . package . packageDescription)
       . readGenericPackageDescription normal) mbCabalFile
 
 
@@ -66,10 +67,10 @@ locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
   <$> getDirectoryContents "."
 
 
-constructDirs' :: Options -> PackageId -> Dirs
-constructDirs' opts pkgId =
-  Dirs prefixDir' binDir' shareDir'
-    (shareDir' </> "doc") (shareDir' </> "resources")
+constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo
+constructDeploymentInfo' opts pkgId =
+  DeploymentInfo prefixDir' binDir' shareDir'
+    (shareDir' </> "doc") (shareDir' </> "resources") version'
 
   where
     prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")

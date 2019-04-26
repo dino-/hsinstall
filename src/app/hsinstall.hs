@@ -11,9 +11,9 @@ import System.Process ( callProcess )
 
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Common ( dumpStockIcon, stackClean )
-import HSInstall.Dirs
-  ( Dirs (binDir, docDir, rsrcDir, shareDir)
-  , constructDirs, normal
+import HSInstall.DeploymentInfo
+  ( DeploymentInfo (binDir, docDir, rsrcDir, shareDir)
+  , constructDeploymentInfo, normal
   )
 import HSInstall.Except
   ( HSInstallException (OneExePerAppImage)
@@ -36,42 +36,42 @@ main = withExceptionHandling $ do
 
   when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
-  dirs <- constructDirs opts
+  di <- constructDeploymentInfo opts
 
   let mbAppImageExe = optExecutable opts
-  cleanup opts dirs
-  deployApplication mbAppImageExe dirs
+  cleanup opts di
+  deployApplication mbAppImageExe di
   maybe (return ()) (\aie ->
     when (optMkAppImage opts) $
-      prepAppImageFiles aie >>= mkAppImage aie dirs
+      prepAppImageFiles aie >>= mkAppImage aie di
     ) mbAppImageExe
 
 
-cleanup :: Options -> Dirs -> IO ()
-cleanup opts dirs= do
+cleanup :: Options -> DeploymentInfo -> IO ()
+cleanup opts di = do
   -- Remove existing application directory (the one down in PREFIX/share)
-  shareDirExists <- Dir.doesDirectoryExist $ shareDir dirs
+  shareDirExists <- Dir.doesDirectoryExist $ shareDir di
   when (optDelete opts && shareDirExists) $ do
-    putStrLn $ "Removing existing directory " ++ shareDir dirs
-    Dir.removeDirectoryRecursive $ shareDir dirs
+    putStrLn $ "Removing existing directory " ++ shareDir di
+    Dir.removeDirectoryRecursive $ shareDir di
 
   -- Clean before building
   when (optClean opts) stackClean
 
 
-deployApplication :: Maybe AppImageExe -> Dirs -> IO ()
-deployApplication mbAppImageExe dirs = do
+deployApplication :: Maybe AppImageExe -> DeploymentInfo -> IO ()
+deployApplication mbAppImageExe di = do
   -- Copy the binaries
-  Dir.createDirectoryIfMissing True $ binDir dirs
+  Dir.createDirectoryIfMissing True $ binDir di
   callProcess "stack"
     [ "install", maybe "" (\aie -> ':' : getExe aie) mbAppImageExe
-    , "--local-bin-path=" ++ binDir dirs
+    , "--local-bin-path=" ++ binDir di
     ]
 
   -- Copy additional scripts
   {-
   putStrLn "Copying additional scripts"
-  mapM_ (\f -> copyFile ("util" </> f) (binDir dirs </> f))
+  mapM_ (\f -> copyFile ("util" </> f) (binDir di </> f))
     [ "script1.sh", "script2.hs" ]
   -}
 
@@ -80,12 +80,12 @@ deployApplication mbAppImageExe dirs = do
   licenseFileExists <- Dir.doesFileExist licenseFile
   when licenseFileExists $ do
     fmtLn $ "\nCopying "+|licenseFile|+""
-    Dir.createDirectoryIfMissing True $ docDir dirs
-    Dir.copyFile licenseFile (docDir dirs </> licenseFile)
+    Dir.createDirectoryIfMissing True $ docDir di
+    Dir.copyFile licenseFile (docDir di </> licenseFile)
 
   -- Copy the resources
   let rsrcDirSrc = "." </> "resources"
   rsrcsExist <- Dir.doesDirectoryExist rsrcDirSrc
   when rsrcsExist $ do
     putStrLn "\nCopying resources"
-    copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
+    copyDirectoryRecursive normal rsrcDirSrc (rsrcDir di)
