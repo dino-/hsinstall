@@ -1,3 +1,14 @@
+2.4 (2019-04-26)
+
+  * Moved copyright date up to 2019
+  * Separated code into more modules for clarity
+  * Switched from GetOpt to optparse-applicative
+  * Fixed API doc wording
+  * Adjusted code with hlint's advice
+  * Now trying to force stack/hpack to generate the cabal file if it's missing
+  * Added app version number to AppImage filename
+
+
 2.3 (2019-03-03)
 
   * Changed deployment dir name to EXECUTABLE.AppDir
