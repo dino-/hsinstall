@@ -1,21 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad ( unless, when )
-import Data.Maybe ( fromMaybe, isNothing )
-import Data.Version ( showVersion )
+import Control.Monad ( when )
+import Data.Maybe ( isNothing )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Fmt ( (+|), (|+), fmtLn )
-import HSInstall.Resources ( getRsrcDir )
-import Paths_hsinstall ( getDataDir, version )
 import qualified System.Directory as Dir
-import System.Environment ( setEnv )
 import System.Exit ( exitSuccess )
-import System.FilePath ( (</>), (<.>), takeDirectory )
+import System.FilePath ( (</>) )
 import System.Process ( callProcess )
 
-import HSInstall.Common ( stackClean )
+import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
+import HSInstall.Common ( dumpStockIcon, stackClean )
 import HSInstall.Dirs
-  ( Dirs (binDir, docDir, prefixDir, rsrcDir, shareDir)
+  ( Dirs (binDir, docDir, rsrcDir, shareDir)
   , constructDirs, normal
   )
 import HSInstall.Except
@@ -48,15 +45,6 @@ main = withExceptionHandling $ do
     when (optMkAppImage opts) $
       prepAppImageFiles aie >>= mkAppImage aie dirs
     ) mbAppImageExe
-
-
-dumpStockIcon :: Maybe FilePath -> IO ()
-dumpStockIcon mbDestPath = do
-  resourcesDir <- getRsrcDir getDataDir
-  let iconFilename = "unix-terminal" <.> "svg"
-  let iconSourcePath = resourcesDir </> iconFilename
-  let destPath = fromMaybe iconFilename mbDestPath
-  Dir.copyFile iconSourcePath destPath
 
 
 cleanup :: Options -> Dirs -> IO ()
@@ -101,56 +89,3 @@ deployApplication mbAppImageExe dirs = do
   when rsrcsExist $ do
     putStrLn "\nCopying resources"
     copyDirectoryRecursive normal rsrcDirSrc (rsrcDir dirs)
-
-
-data DesktopFileStatus = CreateNewDesktop | DesktopExists
-
-
-appImageRsrcDir :: FilePath
-appImageRsrcDir = "util" </> "resources" </> "appimage"
-
-
-prepAppImageFiles :: AppImageExe -> IO DesktopFileStatus
-prepAppImageFiles appImageExe = do
-  let exe = getExe appImageExe
-
-  -- Check and possibly create new icon
-  let iconPath = appImageRsrcDir </> exe <.> "svg"
-  iconExists <- Dir.doesFileExist iconPath
-  unless iconExists $ do
-    Dir.createDirectoryIfMissing True appImageRsrcDir
-    dumpStockIcon $ Just iconPath
-
-  -- Check desktop file, return status to caller
-  let desktopPath = appImageRsrcDir </> exe <.> "desktop"
-  desktopFileExists <- Dir.doesFileExist desktopPath
-  return $ if desktopFileExists then DesktopExists else CreateNewDesktop
-
-
-mkAppImage :: AppImageExe -> Dirs -> DesktopFileStatus -> IO ()
-
-mkAppImage appImageExe dirs DesktopExists = do
-  let desktopArg = "--desktop-file=" ++
-        (appImageRsrcDir </> getExe appImageExe <.> "desktop")
-  mkAppImage' appImageExe dirs desktopArg
-
-mkAppImage appImageExe dirs CreateNewDesktop = do
-  mkAppImage' appImageExe dirs "--create-desktop-file"
-  -- Now copy the freshly-created .desktop file into the project sources
-  let desktopFile = getExe appImageExe <.> "desktop"
-  Dir.copyFile
-    (prefixDir dirs </> "share" </> "applications" </> desktopFile)
-    (appImageRsrcDir </> desktopFile)
-
-
-mkAppImage' :: AppImageExe -> Dirs -> String -> IO ()
-mkAppImage' appImageExe dirs desktopArg = do
-  let executable = getExe appImageExe
-  setEnv "VERSION" $ showVersion version
-  callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory . prefixDir $ dirs)
-    , "--executable=" ++ (binDir dirs </> executable)
-    , desktopArg
-    , "--icon-file=" ++ (appImageRsrcDir </> executable <.> "svg")
-    , "--output=appimage"
-    ]
