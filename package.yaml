@@ -30,12 +30,11 @@ ghc-options:
 
 dependencies:
 - base >= 4.8 && < 5.0
+- directory
+- filepath
 
 library:
   source-dirs: src/lib
-  dependencies:
-  - directory
-  - filepath
 
 executables:
   hsinstall:
@@ -44,8 +43,6 @@ executables:
     dependencies:
     - ansi-wl-pprint
     - Cabal
-    - directory
-    - filepath
     - fmt
     - heredoc
     - hsinstall
