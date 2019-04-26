@@ -54,9 +54,8 @@ constructDirs opts = do
   -- project uses hpack, issuing any stack command will generate the cabal
   -- file.
   mbCabalFile <- getFirst <$>
-    (   First <$> locateCabalFile)
-    <> (First <$> (stackClean >> locateCabalFile)
-    )
+       (First <$> locateCabalFile)
+    <> (First <$> (stackClean >> locateCabalFile))
   maybe (throwM NoCabalFiles)
     (fmap (constructDirs' opts . package . packageDescription)
       . readGenericPackageDescription normal) mbCabalFile
