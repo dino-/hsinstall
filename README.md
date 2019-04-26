@@ -91,6 +91,7 @@ Get source with git and build
     $ git clone https://github.com/dino-/hsinstall.git
     $ cd hsinstall
     $ stack build
+    $ stack haddock --no-haddock-deps hsinstall
 
 If you have the abovementioned `linuxdeploy-*` programs on your path, we can do
 something *really* cool. Use this freshly-built hsinstall to package itself
