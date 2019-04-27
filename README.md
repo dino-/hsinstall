@@ -101,6 +101,9 @@ into an AppImage:
 
 And you should see an `hsinstall-y.z-x86_64.AppImage` binary in `.`
 
+Tip: Use `git clean -df` to blow away untracked things like the AppDir and
+AppImage artifacts.
+
 
 ## Contact
 
