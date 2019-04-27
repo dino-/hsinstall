@@ -1,6 +1,5 @@
 module HSInstall.Common
   ( dumpStockIcon
-  , stackClean
   )
   where
 
@@ -9,11 +8,6 @@ import HSInstall.Resources ( getRsrcDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
 import System.FilePath ( (</>), (<.>) )
-import System.Process ( callProcess )
-
-
-stackClean :: IO ()
-stackClean = callProcess "stack" ["clean"]
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()

@@ -11,7 +11,6 @@ module HSInstall.DeploymentInfo
 
 import Data.List ( isSuffixOf )
 import Data.Maybe ( listToMaybe )
-import Data.Monoid ( First (..), getFirst )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -29,7 +28,6 @@ import Fmt ( (+|), (|+) )
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>) )
 
-import HSInstall.Common ( stackClean )
 import HSInstall.Except
   ( HSInstallException (NoCabalFiles)
   , throwM
@@ -51,20 +49,11 @@ data DeploymentInfo = DeploymentInfo
 
 constructDeploymentInfo :: Options -> IO DeploymentInfo
 constructDeploymentInfo opts = do
-  -- If we fail to find the cabal file, try again after a stack clean. If the
-  -- project uses hpack, issuing any stack command will generate the cabal
-  -- file.
-  mbCabalFile <- getFirst <$>
-       (First <$> locateCabalFile)
-    <> (First <$> (stackClean >> locateCabalFile))
+  mbCabalFile <- listToMaybe . filter (isSuffixOf ".cabal")
+    <$> getDirectoryContents "."
   maybe (throwM NoCabalFiles)
     (fmap (constructDeploymentInfo' opts . package . packageDescription)
       . readGenericPackageDescription normal) mbCabalFile
-
-
-locateCabalFile :: IO (Maybe FilePath)
-locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
-  <$> getDirectoryContents "."
 
 
 constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo

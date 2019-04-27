@@ -10,7 +10,7 @@ import System.FilePath ( (</>) )
 import System.Process ( callProcess )
 
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
-import HSInstall.Common ( dumpStockIcon, stackClean )
+import HSInstall.Common ( dumpStockIcon )
 import HSInstall.DeploymentInfo
   ( DeploymentInfo (binDir, docDir, rsrcDir, shareDir)
   , constructDeploymentInfo, normal
@@ -56,7 +56,7 @@ cleanup opts di = do
     Dir.removeDirectoryRecursive $ shareDir di
 
   -- Clean before building
-  when (optClean opts) stackClean
+  when (optClean opts) $ callProcess "stack" ["clean"]
 
 
 deployApplication :: Maybe AppImageExe -> DeploymentInfo -> IO ()
