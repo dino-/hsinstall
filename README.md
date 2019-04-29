@@ -54,9 +54,6 @@ Regardless of which mode is being used, the directory layout will be a standard
           doc/LICENSE
           resources/  <-- Optional data files directory, see PACK DIRECTORY below
 
-Be aware that when the `--delete` switch is used the binaries in `<PREFIX>/bin`
-WILL NOT be deleted, only the share directory: `<PREFIX>/share/<PROJECT-NAME>`
-
 ### APPIMAGE CREATION
 
 Even for a first-time AppImaging, this tool should produce a working AppImage.

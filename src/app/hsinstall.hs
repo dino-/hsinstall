@@ -11,7 +11,7 @@ import System.Process ( callProcess )
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Common ( dumpStockIcon )
 import HSInstall.DeploymentInfo
-  ( DeploymentInfo (binDir, docDir, prefixDir, shareDir)
+  ( DeploymentInfo (binDir, docDir, prefixDir)
   , constructDeploymentInfo, normal
   )
 import HSInstall.Except ( withExceptionHandling )
@@ -31,23 +31,11 @@ main = withExceptionHandling $ do
 
   di <- constructDeploymentInfo opts
 
-  cleanup opts di
+  when (optClean opts) $ callProcess "stack" ["clean"]
   deployApplication (optBuildMode opts) di
   case optBuildMode opts of
     AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
     Project         -> return ()
-
-
-cleanup :: Options -> DeploymentInfo -> IO ()
-cleanup opts di = do
-  -- Remove existing application directory (the one down in PREFIX/share)
-  shareDirExists <- Dir.doesDirectoryExist $ shareDir di
-  when (optDelete opts && shareDirExists) $ do
-    putStrLn $ "Removing existing directory " ++ shareDir di
-    Dir.removeDirectoryRecursive $ shareDir di
-
-  -- Clean before building
-  when (optClean opts) $ callProcess "stack" ["clean"]
 
 
 modeToStackArg :: BuildMode -> String

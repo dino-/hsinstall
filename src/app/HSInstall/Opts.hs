@@ -23,7 +23,6 @@ data BuildMode = AppImageExe String | Project
 
 data Options = Options
   { optClean :: Bool
-  , optDelete :: Bool
   , optDumpIcon :: Bool
   , optBuildMode :: BuildMode
   , optPrefix :: FilePath
@@ -37,11 +36,6 @@ parser = Options
       (  long "clean"
       <> short 'c'
       <> help "Do 'stack clean' first"
-      )
-  <*> switch
-      (  long "delete"
-      <> short 'd'
-      <> help "Delete the share directory before copying files"
       )
   <*> switch
       (  long "dump-stock-icon"
@@ -110,8 +104,6 @@ Regardless of which mode is being used, the directory layout will be a standard 
         <PROJECT-NAME>/  <-- this is the share directory
           doc/LICENSE
           resources/  <-- Optional data files directory, see PACK DIRECTORY below
-
-Be aware that when the `--delete` switch is used the binaries in `<PREFIX>/bin` WILL NOT be deleted, only the share directory: `<PREFIX>/share/<PROJECT-NAME>`
 
 APPIMAGE CREATION
 
