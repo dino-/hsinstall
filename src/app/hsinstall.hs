@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad ( when )
-import Data.Maybe ( isNothing )
 import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Fmt ( (+|), (|+), fmtLn )
 import qualified System.Directory as Dir
@@ -15,12 +14,9 @@ import HSInstall.DeploymentInfo
   ( DeploymentInfo (binDir, docDir, prefixDir, shareDir)
   , constructDeploymentInfo, normal
   )
-import HSInstall.Except
-  ( HSInstallException (OneExePerAppImage)
-  , withExceptionHandling, throwM
-  )
+import HSInstall.Except ( withExceptionHandling )
 import HSInstall.Opts
-  ( AppImageExe (getExe), Options (..)
+  ( BuildMode (AppImageExe, Project), Options (..)
   , formattedVersion, parseOpts
   )
 
@@ -31,20 +27,15 @@ main = withExceptionHandling $ do
 
   when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
-  when (isNothing (optExecutable opts) && optMkAppImage opts) $
-    throwM OneExePerAppImage
-
   when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
   di <- constructDeploymentInfo opts
 
-  let mbAppImageExe = optExecutable opts
   cleanup opts di
-  deployApplication mbAppImageExe di
-  maybe (return ()) (\aie ->
-    when (optMkAppImage opts) $
-      prepAppImageFiles aie >>= mkAppImage aie di
-    ) mbAppImageExe
+  deployApplication (optBuildMode opts) di
+  case optBuildMode opts of
+    AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
+    Project         -> return ()
 
 
 cleanup :: Options -> DeploymentInfo -> IO ()
@@ -59,12 +50,17 @@ cleanup opts di = do
   when (optClean opts) $ callProcess "stack" ["clean"]
 
 
-deployApplication :: Maybe AppImageExe -> DeploymentInfo -> IO ()
-deployApplication mbAppImageExe di = do
+modeToStackArg :: BuildMode -> String
+modeToStackArg (AppImageExe exe) = ":"+|exe|+""
+modeToStackArg Project           = ""
+
+
+deployApplication :: BuildMode -> DeploymentInfo -> IO ()
+deployApplication mode di = do
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir di
   callProcess "stack"
-    [ "install", maybe "" (\aie -> ':' : getExe aie) mbAppImageExe
+    [ "install", modeToStackArg mode 
     , "--local-bin-path=" ++ binDir di
     ]
 

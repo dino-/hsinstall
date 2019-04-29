@@ -2,7 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 module HSInstall.Opts
-  ( AppImageExe (getExe)
+  ( BuildMode (..)
   , Options (..)
   , formattedVersion
   , parseOpts
@@ -18,17 +18,16 @@ import Text.Heredoc ( here )
 import Text.PrettyPrint.ANSI.Leijen ( string )
 
 
-newtype AppImageExe = AppImageExe { getExe :: String }
+data BuildMode = AppImageExe String | Project
 
 
 data Options = Options
   { optClean :: Bool
   , optDelete :: Bool
   , optDumpIcon :: Bool
-  , optMkAppImage :: Bool
+  , optBuildMode :: BuildMode
   , optPrefix :: FilePath
   , optVersion :: Bool
-  , optExecutable :: Maybe AppImageExe
   }
 
 
@@ -48,10 +47,14 @@ parser = Options
       (  long "dump-stock-icon"
       <> help "Save a default icon, unix-termianl.svg, to the current working directory"
       )
-  <*> switch
-      (  long "mk-appimage"
-      <> short 'i'
-      <> help "Prepare the AppDir structure and build an AppImage for EXE"
+  <*> ( maybe Project AppImageExe <$> optional
+        ( strOption
+          (  long "mk-appimage"
+          <> short 'i'
+          <> metavar "EXE"
+          <> help "Prepare the AppDir structure and build an AppImage for EXE"
+          )
+        )
       )
   <*> strOption
       (  long "prefix"
@@ -64,9 +67,6 @@ parser = Options
   <*> switch
       (  long "version"
       <> help "Show version information"
-      )
-  <*> optional (argument (AppImageExe <$> str)
-      $ metavar "EXE"
       )
 
 

@@ -18,12 +18,10 @@ import System.Exit ( die )
 
 data HSInstallException
   = NoCabalFiles
-  | OneExePerAppImage
   deriving Typeable
 
 instance Show HSInstallException where
   show NoCabalFiles = "no cabal files were found in .  If this is a buildable project directory that uses hpack, try issuing any stack command to generate the cabal file from the package.yaml"
-  show OneExePerAppImage = "one executable must be specified to build an AppImage"
 
 instance Exception HSInstallException
 

@@ -12,7 +12,6 @@ import System.Process ( callProcess )
 
 import HSInstall.Common ( dumpStockIcon )
 import HSInstall.DeploymentInfo ( DeploymentInfo (binDir, prefixDir, version) )
-import HSInstall.Opts ( AppImageExe (getExe) )
 
 
 data DesktopFileStatus = CreateNewDesktop | DesktopExists
@@ -25,10 +24,8 @@ iconDir :: FilePath
 iconDir = "pack" </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
 
 
-prepAppImageFiles :: AppImageExe -> IO DesktopFileStatus
-prepAppImageFiles appImageExe = do
-  let exe = getExe appImageExe
-
+prepAppImageFiles :: String -> IO DesktopFileStatus
+prepAppImageFiles exe = do
   -- Check and possibly create new icon
   let iconPath = iconDir </> exe <.> "svg"
   iconExists <- Dir.doesFileExist iconPath
@@ -42,31 +39,30 @@ prepAppImageFiles appImageExe = do
   return $ if desktopFileExists then DesktopExists else CreateNewDesktop
 
 
-mkAppImage :: AppImageExe -> DeploymentInfo -> DesktopFileStatus -> IO ()
+mkAppImage :: String -> DeploymentInfo -> DesktopFileStatus -> IO ()
 
-mkAppImage appImageExe di DesktopExists = do
+mkAppImage exe di DesktopExists = do
   let desktopArg = "--desktop-file=" ++
-        (desktopDir </> getExe appImageExe <.> "desktop")
-  mkAppImage' appImageExe di desktopArg
+        (desktopDir </> exe <.> "desktop")
+  mkAppImage' exe di desktopArg
 
-mkAppImage appImageExe di CreateNewDesktop = do
-  mkAppImage' appImageExe di "--create-desktop-file"
+mkAppImage exe di CreateNewDesktop = do
+  mkAppImage' exe di "--create-desktop-file"
   -- Now copy the freshly-created .desktop file into the project sources
-  let desktopFile = getExe appImageExe <.> "desktop"
+  let desktopFile = exe <.> "desktop"
   Dir.createDirectoryIfMissing True desktopDir
   Dir.copyFile
     (prefixDir di </> "share" </> "applications" </> desktopFile)
     (desktopDir </> desktopFile)
 
 
-mkAppImage' :: AppImageExe -> DeploymentInfo -> String -> IO ()
-mkAppImage' appImageExe di desktopArg = do
-  let executable = getExe appImageExe
+mkAppImage' :: String -> DeploymentInfo -> String -> IO ()
+mkAppImage' exe di desktopArg = do
   setEnv "VERSION" $ version di
   callProcess "linuxdeploy-x86_64.AppImage"
     [ "--appdir=" ++ (takeDirectory . prefixDir $ di)
-    , "--executable=" ++ (binDir di </> executable)
+    , "--executable=" ++ (binDir di </> exe)
     , desktopArg
-    , "--icon-file=" ++ (iconDir </> executable <.> "svg")
+    , "--icon-file=" ++ (iconDir </> exe <.> "svg")
     , "--output=appimage"
     ]

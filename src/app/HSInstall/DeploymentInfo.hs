@@ -33,7 +33,7 @@ import HSInstall.Except
   , throwM
   )
 import HSInstall.Opts
-  ( AppImageExe (getExe), Options (..)
+  ( BuildMode (AppImageExe, Project) , Options (..)
   )
 
 
@@ -62,8 +62,9 @@ constructDeploymentInfo' opts pkgId =
     (shareDir' </> "doc") (shareDir' </> "resources") version'
 
   where
-    prefixDir' = maybe (optPrefix opts) (\e -> (""+|getExe e|+".AppDir") </> "usr")
-      $ optExecutable opts
+    prefixDir' = case optBuildMode opts of
+      AppImageExe exe -> (""+|exe|+".AppDir") </> "usr"
+      Project         -> "AppDir" </> "usr"
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
