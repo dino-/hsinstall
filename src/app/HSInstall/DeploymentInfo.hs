@@ -67,4 +67,4 @@ constructDeploymentInfo' opts pkgId =
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> (""+|project|+"-"+|version'|+"")
+    shareDir' = prefixDir' </> "share" </> (""+|project|+"")

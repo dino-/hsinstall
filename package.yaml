@@ -11,12 +11,12 @@ extra-source-files:
 - changelog.md
 - doc/hcar/hsinstall.tex
 - .gitignore
+- pack/share/applications/hsinstall.desktop
+- pack/share/hsinstall/resources/unix-terminal.svg
+- pack/share/icons/hicolor/scalable/apps/hsinstall.svg
 - package.yaml
 - README.md
-- resources/unix-terminal.svg
 - stack.yaml
-- util/resources/appimage/hsinstall.desktop
-- util/resources/appimage/hsinstall.svg
 
 github: dino-/hsinstall
 

@@ -12,7 +12,7 @@ import System.Process ( callProcess )
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Common ( dumpStockIcon )
 import HSInstall.DeploymentInfo
-  ( DeploymentInfo (binDir, docDir, rsrcDir, shareDir)
+  ( DeploymentInfo (binDir, docDir, prefixDir, shareDir)
   , constructDeploymentInfo, normal
   )
 import HSInstall.Except
@@ -68,13 +68,6 @@ deployApplication mbAppImageExe di = do
     , "--local-bin-path=" ++ binDir di
     ]
 
-  -- Copy additional scripts
-  {-
-  putStrLn "Copying additional scripts"
-  mapM_ (\f -> copyFile ("util" </> f) (binDir di </> f))
-    [ "script1.sh", "script2.hs" ]
-  -}
-
   -- Copy the license
   let licenseFile = "LICENSE"
   licenseFileExists <- Dir.doesFileExist licenseFile
@@ -83,9 +76,9 @@ deployApplication mbAppImageExe di = do
     Dir.createDirectoryIfMissing True $ docDir di
     Dir.copyFile licenseFile (docDir di </> licenseFile)
 
-  -- Copy the resources
-  let rsrcDirSrc = "." </> "resources"
-  rsrcsExist <- Dir.doesDirectoryExist rsrcDirSrc
+  -- Copy the static pack files
+  let packDir = "." </> "pack"
+  rsrcsExist <- Dir.doesDirectoryExist packDir
   when rsrcsExist $ do
-    putStrLn "\nCopying resources"
-    copyDirectoryRecursive normal rsrcDirSrc (rsrcDir di)
+    putStrLn "\nCopying static pack files"
+    copyDirectoryRecursive normal packDir (prefixDir di)

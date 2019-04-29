@@ -12,8 +12,7 @@ module HSInstall.Except
 
 import Control.Exception.Safe
   ( Exception, Handler (..), Typeable, catches, throwM )
-import Fmt ( (+|), (|+), (+||), (||+) )
-import GHC.IO.Exception ( IOException (ioe_filename, ioe_type) )
+import GHC.IO.Exception ( IOException )
 import System.Exit ( die )
 
 
@@ -35,8 +34,7 @@ withExceptionHandling = flip catches exceptionHandlers
 
 exceptionHandlers :: [Handler IO a]
 exceptionHandlers =
-  [ Handler (\(err :: IOException) -> explainError $
-      ""+||ioe_type err||+""+|maybe "" (": " ++) (ioe_filename err)|+"")
+  [ Handler (\(err :: IOException) -> explainError . show $ err)
   , Handler (\(err :: HSInstallException) -> explainError $ show err)
   ]
 

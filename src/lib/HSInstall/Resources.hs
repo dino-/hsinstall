@@ -32,11 +32,15 @@ import System.FilePath ( (</>), takeDirectory, takeFileName )
 -}
 getRsrcDir :: IO FilePath -> IO FilePath
 getRsrcDir cabalDataDir = do
-  appDir <- takeFileName <$> cabalDataDir
+  appDir <- stripVersion . takeFileName <$> cabalDataDir
   rsrcPath <- ( </> "share" </> appDir </> "resources" )
     . takeDirectory . takeDirectory <$> getExecutablePath
 
   rsrcPathExists <- doesDirectoryExist rsrcPath
   if rsrcPathExists
     then return rsrcPath
-    else fail "Unable to find resources directory"
+    else fail $ "Resources directory " ++ rsrcPath ++ " does not exist"
+
+
+stripVersion :: String -> String
+stripVersion = reverse . tail . dropWhile (/= '-') . reverse
