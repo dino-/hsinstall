@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad ( when )
-import Distribution.Simple.Utils ( copyDirectoryRecursive )
 import Fmt ( (+|), (|+), fmtLn )
 import qualified System.Directory as Dir
 import System.Exit ( exitSuccess )
@@ -12,13 +11,14 @@ import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Common ( dumpStockIcon )
 import HSInstall.DeploymentInfo
   ( DeploymentInfo (binDir, docDir, prefixDir)
-  , constructDeploymentInfo, normal
+  , constructDeploymentInfo
   )
 import HSInstall.Except ( withExceptionHandling )
 import HSInstall.Opts
   ( BuildMode (AppImageExe, Project), Options (..)
   , formattedVersion, parseOpts
   )
+import HSInstall.System.Directory ( copyTree )
 
 
 main :: IO ()
@@ -65,4 +65,4 @@ deployApplication mode di = do
   rsrcsExist <- Dir.doesDirectoryExist packDir
   when rsrcsExist $ do
     putStrLn "\nCopying static pack files"
-    copyDirectoryRecursive normal packDir (prefixDir di)
+    copyTree False packDir (prefixDir di)
