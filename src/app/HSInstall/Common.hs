@@ -4,7 +4,7 @@ module HSInstall.Common
   where
 
 import Data.Maybe ( fromMaybe )
-import HSInstall.Resources ( getRsrcDir )
+import HSInstall.Paths ( getShareDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
 import System.FilePath ( (</>), (<.>) )
@@ -12,8 +12,8 @@ import System.FilePath ( (</>), (<.>) )
 
 dumpStockIcon :: Maybe FilePath -> IO ()
 dumpStockIcon mbDestPath = do
-  resourcesDir <- getRsrcDir getDataDir
+  shareDir <- getShareDir getDataDir
   let iconFilename = "unix-terminal" <.> "svg"
-  let iconSourcePath = resourcesDir </> iconFilename
+  let iconSourcePath = shareDir </> "resources" </> iconFilename
   let destPath = fromMaybe iconFilename mbDestPath
   copyFile iconSourcePath destPath
