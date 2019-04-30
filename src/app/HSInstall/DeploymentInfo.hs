@@ -62,10 +62,14 @@ constructDeploymentInfo' opts pkgId =
     (shareDir' </> "doc") (shareDir' </> "resources") version'
 
   where
-    prefixDir' = case optBuildMode opts of
-      AppImageExe exe -> (""+|exe|+".AppDir") </> "usr"
-      Project         -> "AppDir" </> "usr"
+    prefixDir' = computePrefixDir (optPrefix opts) (optBuildMode opts)
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
     shareDir' = prefixDir' </> "share" </> (""+|project|+"")
+
+
+computePrefixDir :: Maybe FilePath -> BuildMode -> FilePath
+computePrefixDir (Just prefix') _                 = prefix'
+computePrefixDir Nothing        (AppImageExe exe) = (""+|exe|+".AppDir") </> "usr"
+computePrefixDir Nothing        Project           = "AppDir" </> "usr"

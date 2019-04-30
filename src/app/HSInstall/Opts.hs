@@ -25,7 +25,7 @@ data Options = Options
   { optClean :: Bool
   , optDumpIcon :: Bool
   , optBuildMode :: BuildMode
-  , optPrefix :: FilePath
+  , optPrefix :: Maybe FilePath
   , optVersion :: Bool
   }
 
@@ -46,17 +46,16 @@ parser = Options
           (  long "mk-appimage"
           <> short 'i'
           <> metavar "EXE"
-          <> help "Prepare the AppDir structure and build an AppImage for EXE"
+          <> help "Prepare the AppDir structure and build an AppImage for EXE. Changes PREFIX to EXE.AppDir/usr."
           )
         )
       )
-  <*> strOption
-      (  long "prefix"
-      <> short 'p'
-      <> showDefault
-      <> value "AppDir/usr"
-      <> metavar "PREFIX"
-      <> help "Install prefix directory"
+  <*> optional ( strOption
+        (  long "prefix"
+        <> short 'p'
+        <> metavar "PREFIX"
+        <> help "Install prefix directory (Default: AppDir/usr)"
+        )
       )
   <*> switch
       (  long "version"
