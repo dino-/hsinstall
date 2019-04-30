@@ -39,7 +39,7 @@ parser = Options
       )
   <*> switch
       (  long "dump-stock-icon"
-      <> help "Save a default icon, unix-termianl.svg, to the current working directory"
+      <> help "Save a default icon, unix-terminal.svg, to the current working directory"
       )
   <*> ( maybe Project AppImageExe <$> optional
         ( strOption
