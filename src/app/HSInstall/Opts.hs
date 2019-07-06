@@ -53,7 +53,7 @@ parser = Options
   <*> optional ( strOption
         (  long "prefix"
         <> short 'p'
-        <> metavar "PREFIX"
+        <> metavar "DIR"
         <> help "Install prefix directory (Default: AppDir/usr)"
         )
       )
@@ -74,49 +74,50 @@ footer' :: InfoMod a
 footer' = footerDoc . Just . string . format content . showVersion $ version
     where content = [here|OVERVIEW
 
-hsinstall is a tool for deploying software projects into directory structures suitable for installation on a system. It builds upon the `stack install` command and adds these features:
+hsinstall is a tool for installing a Haskell software project into a directory structure for deployment. It builds upon the `stack install` command and adds these features:
 
-- Copying the `LICENSE` file into the deployment directory
-- Copying a static directory stucture (named `pack`) onto the destination prefix directory that can contain additional binaries or scripts, resources, documentation, etc. (more on this later in PACK DIRECTORY)
-- Building an AppDir directory structure for a project and producing an AppImage
+- Copies the `LICENSE` file into <PREFIX>/share/<PROJECT-NAME>/doc
+- Copies the contents of a static directory stucture in your project (named `pack`) into the destination prefix directory. This can contain additional binaries or scripts, resources, documentation, etc. (more on this later in PACK DIRECTORY)
+- Optionally builds an AppDir directory structure for the project and produces an AppImage binary
 
-It will be necessary to have the Haskell stack tool on your PATH:
+To use hsinstall, it will be necessary to have the Haskell stack tool on your PATH:
 https://docs.haskellstack.org/en/stable/README/
 
 If the AppImage features are desired, you must have these tools on your PATH:
 linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases
 linuxdeploy-plugin-appimage: https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases
 
-MODES
+Running hsinstall on a project for the first time and with no arguments will produce this in . :
 
-hsinstall operates in two ways: build a distribution directory or build an AppImage.
+    AppDir/
+      usr/
+        bin/  <-- All binaries in the project
+        share/
+          <PROJECT-NAME>/
+            doc/
+              LICENSE
 
-If the -i,--mk-appimage switch is omitted, hsinstall will construct a distribution directory containing all binaries in the project, the license file and the contents of the `pack` directory if present. This could be used as the source for a distribution-specific packaging procedure or used as-is on a non-Linux system. The default prefix is `AppDir/usr`
+The -p,--prefix switch allows you to set a prefix other than `AppDir/usr`. This could be anywhere, like `myproject-2.3` or `/usr/local` or `/opt`
 
-The second mode includes everything above plus AppImage creation and is triggered by the -i,--mk-appimage switch. This will change the PREFIX to `<EXE>.AppDir/usr`. And only that single executable will be copied to the `<EXE>.AppDir/usr/bin` directory. AppImages are intended to contain exactly one binary each.
-
-Regardless of which mode is being used, the directory layout will be a standard FHS shape, common in UNIX-like operating systems. Like this:
-
-    <PREFIX>/
-      bin/  <- stack will install your binaries here
-      share/
-        <PROJECT-NAME>/  <-- this is the share directory
-          doc/LICENSE
-          resources/  <-- Optional data files directory, see PACK DIRECTORY below
+In addition, if a `pack` directory exists, its contents will be copied into the prefix before build and install. See PACK DIRECTORY below for more info.
 
 APPIMAGE CREATION
 
-Even for a first-time AppImaging, this tool should produce a working AppImage. If missing, it will create default `.desktop` and `.svg` files in `pack/share`. Customize or replace these to fit your project, and then check these two files into source control for future builds. For more info, see PACK DIRECTORY below.
+The -i,--mk-appimage switch will change the default prefix to `EXE.AppDir/usr` and only the specified EXE will be installed into `<PREFIX>/bin`, AppImages are intended to be made for exactly one binary.
+
+If .desktop and .svg files are not found in the pack directory, defaults will be created for you and placed in the correct subdirs. Check these files into source control for future builds.
 
 The default `.desktop` file Categories will be populated with 'Utility;'. We recommend adjusting this using the XDG list of registered categories: https://specifications.freedesktop.org/menu-spec/latest/apa.html
 
 If your application is a command-line program, append a line containing this to the end of the default `.desktop` file: 'Terminal=true'
 
-If your application isn't a command-line tool, we recommend using a proper icon instead of the hsinstall default, which is a command shell icon.
+If your application isn't a command-line program, we recommend using a proper icon instead of the hsinstall default, which is a command shell icon.
+
+For more info on AppImage: https://appimage.org/
 
 PACK DIRECTORY
 
-If present, hsinstall will copy the contents of the `pack` directory onto `<PREFIX>`. Here's a sample of a fully-featured pack directory:
+If present, hsinstall will copy the contents of the `pack` directory into `<PREFIX>`. Here's an explanation of the pack directory contents:
 
     pack/
       bin/  <-- Put additional binaries and scripts to be deployed here
@@ -124,7 +125,7 @@ If present, hsinstall will copy the contents of the `pack` directory onto `<PREF
         applications/  <-- Only for AppImage
           <EXE>.desktop  <-- Will be generated by first-time AppImage creation attempt
         <PROJECT-NAME>/  <-- Only needed if you have resources
-          resources/  <-- Put data files the software will need at runtime here
+          resources/  <-- Put data files your software will need at runtime here
         icons/  <-- Only for AppImage
           hicolor/
             scalable/
