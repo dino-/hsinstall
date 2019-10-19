@@ -16,7 +16,7 @@ import HSInstall.DeploymentInfo
 import HSInstall.Except ( withExceptionHandling )
 import HSInstall.Opts
   ( BuildMode (AppImageExe, Project), Options (..)
-  , formattedVersion, parseOpts
+  , parseOpts
   )
 import HSInstall.System.Directory ( copyTree )
 
@@ -24,8 +24,6 @@ import HSInstall.System.Directory ( copyTree )
 main :: IO ()
 main = withExceptionHandling $ do
   opts <- parseOpts
-
-  when (optVersion opts) $ formattedVersion >>= putStrLn >> exitSuccess
 
   when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 

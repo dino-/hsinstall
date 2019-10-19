@@ -4,7 +4,6 @@
 module HSInstall.Opts
   ( BuildMode (..)
   , Options (..)
-  , formattedVersion
   , parseOpts
   )
   where
@@ -26,7 +25,6 @@ data Options = Options
   , optDumpIcon :: Bool
   , optBuildMode :: BuildMode
   , optPrefix :: Maybe FilePath
-  , optVersion :: Bool
   }
 
 
@@ -57,17 +55,24 @@ parser = Options
         <> help "Install prefix directory (Default: AppDir/usr)"
         )
       )
-  <*> switch
-      (  long "version"
-      <> help "Show version information"
-      )
+
+
+versionHelper :: String -> Parser (a -> a)
+versionHelper progName =
+  infoOption (""+|progName|+" "+|showVersion version|+"") $ mconcat
+  [ long "version"
+  , help "Show version information"
+  , hidden
+  ]
 
 
 parseOpts :: IO Options
-parseOpts = execParser $ info (parser <**> helper)
-  (  header "hsinstall - Pack a haskell project into a deployable directory structure"
-  <> footer'
-  )
+parseOpts = do
+  pn <- getProgName
+  execParser $ info (parser <**> helper <**> versionHelper pn)
+    (  header (""+|pn|+" - Pack a haskell project into a deployable directory structure")
+    <> footer'
+    )
 
 
 footer' :: InfoMod a
@@ -135,9 +140,3 @@ If present, hsinstall will copy the contents of the `pack` directory into `<PREF
 In order to locate data files at runtime, including resources, the hsinstall project includes a library to construct the share path relative to the executable. See this source code for help with integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Paths.hs
 
 Version {}  Dino Morelli <dino@ui3.info>|]
-
-
-formattedVersion :: IO String
-formattedVersion = do
-  progName <- getProgName
-  return (""+|progName|+" "+|showVersion version|+"")
