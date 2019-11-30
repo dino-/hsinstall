@@ -8,7 +8,7 @@ import System.FilePath ( (</>) )
 import System.Process ( callProcess )
 
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
-import HSInstall.Common ( dumpStockIcon )
+import HSInstall.Common ( dumpStockIcon, tmplDir )
 import HSInstall.DeploymentInfo
   ( DeploymentInfo (binDir, docDir, prefixDir)
   , constructDeploymentInfo
@@ -59,8 +59,7 @@ deployApplication mode di = do
     Dir.copyFile licenseFile (docDir di </> licenseFile)
 
   -- Copy the static pack files
-  let packDir = "." </> "pack"
-  rsrcsExist <- Dir.doesDirectoryExist packDir
-  when rsrcsExist $ do
-    putStrLn "\nCopying static pack files"
-    copyTree False packDir (prefixDir di)
+  tmplExists <- Dir.doesDirectoryExist tmplDir
+  when tmplExists $ do
+    putStrLn ("\nCopying distribution files from template dir ("+|tmplDir|+")")
+    copyTree False tmplDir (prefixDir di)

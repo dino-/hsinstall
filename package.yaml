@@ -11,9 +11,9 @@ extra-source-files:
 - changelog.md
 - doc/hcar/hsinstall.tex
 - .gitignore
-- pack/share/applications/hsinstall.desktop
-- pack/share/hsinstall/resources/unix-terminal.svg
-- pack/share/icons/hicolor/scalable/apps/hsinstall.svg
+- hsinstall/share/applications/hsinstall.desktop
+- hsinstall/share/hsinstall/resources/unix-terminal.svg
+- hsinstall/share/icons/hicolor/scalable/apps/hsinstall.svg
 - package.yaml
 - README.md
 - stack.yaml

@@ -1,5 +1,6 @@
 module HSInstall.Common
   ( dumpStockIcon
+  , tmplDir
   )
   where
 
@@ -7,7 +8,11 @@ import Data.Maybe ( fromMaybe )
 import HSInstall.Paths ( getShareDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
-import System.FilePath ( (</>), (<.>) )
+import System.FilePath ( FilePath, (</>), (<.>) )
+
+
+tmplDir :: FilePath
+tmplDir = "." </> "hsinstall"
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()
