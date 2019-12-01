@@ -20,7 +20,7 @@ import System.FilePath ( (</>), takeDirectory, takeFileName )
   Usage:
 
   @
-    import HSInstall.Resources ( getShareDir )
+    import HSInstall.Paths ( getShareDir )
     import Paths_PROJECTNAME ( getDataDir )
 
     shareDir <- getShareDir getDataDir
