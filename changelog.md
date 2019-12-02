@@ -1,3 +1,18 @@
+2.5 (2019-12-01)
+
+  * Using an infoHelper for the --version switch
+  * Moved Stackage snapshot up to lts-14.8
+  * Updated usage to reflect the new template dir behavior
+  * Changed lib/HSInstall/Resources.hs to Paths.hs
+  * Added custom code for recursive file copying
+  * Fixed bug with default prefix directory
+  * Removed the --delete switch
+  * Rolled EXE argument into --mk-appimage switch
+  * Changed how resources and AppImage source files are handled
+  * Added a handy tip about git clean
+  * Removed code to force cabal file creation
+
+
 2.4 (2019-04-26)
 
   * Moved copyright date up to 2019
