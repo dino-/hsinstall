@@ -14,7 +14,7 @@ hsinstall is a tool for installing a Haskell software project into a directory
 structure for deployment. It builds upon the `stack install` command and adds
 these features:
 
-- Copies the `LICENSE` file into <PREFIX>/share/<PROJECT-NAME>/doc
+- Copies the `LICENSE` file into `<PREFIX>/share/<PROJECT-NAME>/doc`
 - Copies the contents of a static directory stucture in your project (named
   `hsinstall`) into the destination prefix directory. This can contain
   additional binaries or scripts, resources, documentation, etc. (more on this
@@ -26,7 +26,7 @@ To use hsinstall, it will be necessary to have the Haskell stack tool on your PA
 https://docs.haskellstack.org/en/stable/README/
 
 If the AppImage features are desired, you must have these tools on your PATH:
-linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases
+linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases,
 linuxdeploy-plugin-appimage: https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases
 
 Running hsinstall on a project for the first time and with no arguments will produce this in . :
@@ -89,7 +89,7 @@ contents:
 
 In order to locate data files at runtime, including resources, the hsinstall
 project includes a library to construct the share path relative to the
-executable. See [this source code](https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs)
+executable. See [this source code](https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Paths.hs)
 for help with integrating this into your app.
 
 
