@@ -50,3 +50,4 @@ executables:
     - optparse-applicative
     - process
     - safe-exceptions
+    - transformers
