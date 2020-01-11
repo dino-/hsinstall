@@ -1,3 +1,12 @@
+2.6 (2020-01-12)
+
+  * Moved stack resolver up to lts-14.20
+  * Switched from fmt library to Text.Printf
+  * Try to force hpack cabal file creation if it's missing
+  * Moved copyright date up to 2020
+  * Fixed various problems in the README
+
+
 2.5 (2019-12-01)
 
   * Using an infoHelper for the --version switch
