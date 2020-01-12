@@ -26,7 +26,6 @@ import Distribution.PackageDescription.Parsec
 import Distribution.Pretty ( prettyShow )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
-import Fmt ( (+|), (|+) )
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>) )
 import System.Process ( callProcess )
@@ -75,10 +74,10 @@ constructDeploymentInfo' opts pkgId =
     binDir' = prefixDir' </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> (""+|project|+"")
+    shareDir' = prefixDir' </> "share" </> project
 
 
 computePrefixDir :: Maybe FilePath -> BuildMode -> FilePath
 computePrefixDir (Just prefix') _                 = prefix'
-computePrefixDir Nothing        (AppImageExe exe) = (""+|exe|+".AppDir") </> "usr"
+computePrefixDir Nothing        (AppImageExe exe) = (exe ++ ".AppDir") </> "usr"
 computePrefixDir Nothing        Project           = "AppDir" </> "usr"

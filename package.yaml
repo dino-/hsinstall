@@ -44,7 +44,6 @@ executables:
     dependencies:
     - ansi-wl-pprint
     - Cabal
-    - fmt
     - heredoc
     - hsinstall
     - optparse-applicative

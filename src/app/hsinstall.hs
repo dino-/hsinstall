@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad ( when )
-import Fmt ( (+|), (|+), fmtLn )
 import qualified System.Directory as Dir
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>) )
 import System.Process ( callProcess )
+import Text.Printf ( printf )
 
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Common ( dumpStockIcon, tmplDir )
@@ -37,7 +37,7 @@ main = withExceptionHandling $ do
 
 
 modeToStackArg :: BuildMode -> String
-modeToStackArg (AppImageExe exe) = ":"+|exe|+""
+modeToStackArg (AppImageExe exe) = ':' : exe
 modeToStackArg Project           = ""
 
 
@@ -54,12 +54,12 @@ deployApplication mode di = do
   let licenseFile = "LICENSE"
   licenseFileExists <- Dir.doesFileExist licenseFile
   when licenseFileExists $ do
-    fmtLn $ "\nCopying "+|licenseFile|+""
+    printf "\nCopying %s\n" licenseFile
     Dir.createDirectoryIfMissing True $ docDir di
     Dir.copyFile licenseFile (docDir di </> licenseFile)
 
-  -- Copy the static pack files
+  -- Copy the static template directory
   tmplExists <- Dir.doesDirectoryExist tmplDir
   when tmplExists $ do
-    putStrLn ("\nCopying distribution files from template dir ("+|tmplDir|+")")
+    printf "\nCopying distribution files from template dir (%s)\n" tmplDir
     copyTree False tmplDir (prefixDir di)

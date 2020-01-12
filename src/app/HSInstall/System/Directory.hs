@@ -7,10 +7,10 @@ module HSInstall.System.Directory
 
 import Control.Monad ( when )
 import Data.List ( (\\) )
-import Fmt ( (+|), (|+), fmtLn )
 import System.Directory ( copyFile, createDirectoryIfMissing,
   doesDirectoryExist, getDirectoryContents )
 import System.FilePath ( (</>) )
+import Text.Printf ( printf )
 
 
 {-
@@ -52,7 +52,7 @@ copyItem chatty baseSourcePath baseTargetPath (isDir, relativePath) = do
   let targetPath = baseTargetPath </> relativePath
 
   when chatty $
-    fmtLn $ "Copying "+|sourcePath|+" to "+|targetPath|+""
+    printf "Copying %s to %s\n" sourcePath targetPath
 
   if isDir
     then createDirectoryIfMissing False targetPath
