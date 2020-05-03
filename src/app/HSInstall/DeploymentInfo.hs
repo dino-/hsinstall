@@ -11,8 +11,7 @@ module HSInstall.DeploymentInfo
 
 import Control.Applicative ( (<|>) )
 import Control.Monad.Trans.Maybe ( MaybeT (..), runMaybeT )
-import Data.List ( isSuffixOf )
-import Data.Maybe ( listToMaybe )
+import Data.List ( find, isSuffixOf )
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -50,14 +49,14 @@ data DeploymentInfo = DeploymentInfo
 
 
 locateCabalFile :: IO (Maybe FilePath)
-locateCabalFile = listToMaybe . filter (isSuffixOf ".cabal")
+locateCabalFile = find (isSuffixOf ".cabal")
     <$> getDirectoryContents "."
 
 
 constructDeploymentInfo :: Options -> IO DeploymentInfo
 constructDeploymentInfo opts = do
   mbCabalFile <- runMaybeT
-    $   MaybeT (locateCabalFile)
+    $   MaybeT locateCabalFile
     <|> MaybeT (callProcess "stack" ["query"] >> locateCabalFile)
   maybe (throwM NoCabalFiles)
     (fmap (constructDeploymentInfo' opts . package . packageDescription)
