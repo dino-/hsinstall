@@ -87,6 +87,8 @@ hsinstall is a tool for installing a Haskell software project into a directory s
 
 To use hsinstall, it will be necessary to be in the top-level directory of a Haskell project that builds with either cabal or stack. You'll need to have one or the other of the cabal or stack tools on your path as well. Basically, if you can't build the project, hsinstall can't build it either.
 
+Also note that all cabal commands will be issued as `v2-*` commands. The older `v1-*` commands are deprecated and we don't use them.
+
 If the AppImage features are desired, you must have these tools on your PATH:
 linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases
 linuxdeploy-plugin-appimage: https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases

@@ -30,7 +30,7 @@ determineBuildTool = do
 
 
 clean :: BuildTool -> IO ()
-clean Cabal = callProcess "cabal" ["clean"]
+clean Cabal = callProcess "cabal" ["v2-clean"]
 clean Stack = callProcess "stack" ["clean"]
 
 
@@ -43,7 +43,7 @@ installBinaries :: BuildTool -> BuildMode -> FilePath -> IO ()
 
 installBinaries Cabal _ binDir =
   callProcess "cabal"
-    [ "install"
+    [ "v2-install"
     , "--install-method=copy"
     , "--overwrite-policy=always"
     , "--installdir=" ++ binDir
