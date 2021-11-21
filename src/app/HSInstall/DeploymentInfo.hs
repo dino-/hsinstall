@@ -27,8 +27,8 @@ import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>), (<.>) )
-import System.Process ( callProcess )
 
+import HSInstall.Build ( BuildTool, makeCabal )
 import HSInstall.Except
   ( HSInstallException (NoCabalFiles)
   , throwM
@@ -53,11 +53,11 @@ locateCabalFile = find (isSuffixOf ".cabal")
     <$> getDirectoryContents "."
 
 
-constructDeploymentInfo :: Options -> IO DeploymentInfo
-constructDeploymentInfo opts = do
+constructDeploymentInfo :: BuildTool -> Options -> IO DeploymentInfo
+constructDeploymentInfo buildTool opts = do
   mbCabalFile <- runMaybeT
     $   MaybeT locateCabalFile
-    <|> MaybeT (callProcess "stack" ["query"] >> locateCabalFile)
+    <|> MaybeT (makeCabal buildTool >> locateCabalFile)
   maybe (throwM NoCabalFiles)
     (fmap (constructDeploymentInfo' opts . package . packageDescription)
       . readGenericPackageDescription normal) mbCabalFile

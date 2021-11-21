@@ -3,6 +3,7 @@
 
 module HSInstall.Except
   ( HSInstallException (..)
+  , justDoIt
   , withExceptionHandling
 
   -- Re-exported
@@ -11,7 +12,8 @@ module HSInstall.Except
   where
 
 import Control.Exception.Safe
-  ( Exception, Handler (..), Typeable, catches, throwM )
+  ( Exception, Handler (..), Typeable, catches, catchIO, throwM )
+import Control.Monad.Catch ( MonadCatch )
 import GHC.IO.Exception ( IOException )
 import System.Exit ( die )
 
@@ -21,7 +23,7 @@ data HSInstallException
   deriving Typeable
 
 instance Show HSInstallException where
-  show NoCabalFiles = "no cabal files were found in .  If this is a buildable project directory that uses hpack, try issuing any stack command like `stack query` or `stack clean` to generate the cabal file from the package.yaml"
+  show NoCabalFiles = "no cabal files were found in .  We tried to run `hpack` and/or `stack query` and still don't see a cabal file. Is this directory really a Haskell project?"
 
 instance Exception HSInstallException
 
@@ -39,3 +41,10 @@ exceptionHandlers =
 
 explainError :: String -> IO a
 explainError = die . ("Could not continue because: " ++)
+
+
+-- Just try to perform the action and eat any IO exception. We want this to
+-- happen because we'll be using this to try several commands and don't expect
+-- all of them to succeed.
+justDoIt :: MonadCatch m => m () -> m ()
+justDoIt a = catchIO a $ const (pure ())

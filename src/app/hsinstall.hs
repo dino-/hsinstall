@@ -6,10 +6,11 @@ import System.Exit ( exitSuccess )
 import System.FilePath ( (</>) )
 import System.IO ( BufferMode (NoBuffering),
   hSetBuffering, stderr, stdout )
-import System.Process ( callProcess )
 import Text.Printf ( printf )
 
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
+import HSInstall.Build ( BuildTool, clean,
+  determineBuildTool, installBinaries )
 import HSInstall.Common ( dumpStockIcon, tmplDir )
 import HSInstall.DeploymentInfo
   ( DeploymentInfo (binDir, docDir, prefixDir)
@@ -29,31 +30,25 @@ main = do
   withExceptionHandling $ do
     opts <- parseOpts
 
+    buildTool <- determineBuildTool
+    putStrLn $ "Build tool detected: " <> show buildTool
+
     when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
-    di <- constructDeploymentInfo opts
+    di <- constructDeploymentInfo buildTool opts
 
-    -- when (optClean opts) $ callProcess "stack" ["clean"]
-    when (optClean opts) $ callProcess "cabal" ["clean"]
-    deployApplication (optBuildMode opts) di
+    when (optClean opts) $ clean buildTool
+    deployApplication buildTool (optBuildMode opts) di
     case optBuildMode opts of
       AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
       Project         -> return ()
 
 
-modeToStackArg :: BuildMode -> String
-modeToStackArg (AppImageExe exe) = ':' : exe
-modeToStackArg Project           = ""
-
-
-deployApplication :: BuildMode -> DeploymentInfo -> IO ()
-deployApplication mode di = do
+deployApplication :: BuildTool -> BuildMode -> DeploymentInfo -> IO ()
+deployApplication buildTool mode di = do
   -- Copy the binaries
   Dir.createDirectoryIfMissing True $ binDir di
-  callProcess "stack"
-    [ "install", modeToStackArg mode 
-    , "--local-bin-path=" ++ binDir di
-    ]
+  installBinaries buildTool mode $ binDir di
 
   -- Copy the license
   let licenseFile = "LICENSE"

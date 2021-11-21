@@ -33,7 +33,7 @@ parser = Options
   <$> switch
       (  long "clean"
       <> short 'c'
-      <> help "Do 'stack clean' first"
+      <> help "Do stack or cabal 'clean' first"
       )
   <*> switch
       (  long "dump-stock-icon"
@@ -79,14 +79,13 @@ footer' :: InfoMod a
 footer' = footerDoc . Just . string . printf content . showVersion $ version
     where content = [here|OVERVIEW
 
-hsinstall is a tool for installing a Haskell software project into a directory structure for deployment. It builds upon the `stack install` command and adds these features:
+hsinstall is a tool for installing a Haskell software project into a directory structure for deployment. It builds upon the `stack install` and `cabal install` commands and adds these features:
 
 - Copies the `LICENSE` file into <PREFIX>/share/<PROJECT-NAME>/doc
 - Copies the contents of a static directory stucture in your project (named `hsinstall`) into the destination prefix directory. This can contain additional binaries or scripts, resources, documentation, etc. (more on this later in TEMPLATE DIRECTORY)
 - Optionally builds an AppDir directory structure for the project and produces an AppImage binary
 
-To use hsinstall, it will be necessary to have the Haskell stack tool on your PATH:
-https://docs.haskellstack.org/en/stable/README/
+To use hsinstall, it will be necessary to be in the top-level directory of a Haskell project that builds with either cabal or stack. You'll need to have one or the other of the cabal or stack tools on your path as well. Basically, if you can't build the project, hsinstall can't build it either.
 
 If the AppImage features are desired, you must have these tools on your PATH:
 linuxdeploy: https://github.com/linuxdeploy/linuxdeploy/releases
