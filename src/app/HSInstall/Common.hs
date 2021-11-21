@@ -8,7 +8,7 @@ import Data.Maybe ( fromMaybe )
 import HSInstall.Paths ( getShareDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
-import System.FilePath ( FilePath, (</>), (<.>) )
+import System.FilePath ( (</>), (<.>) )
 
 
 tmplDir :: FilePath
