@@ -4,6 +4,8 @@ import Control.Monad ( when )
 import qualified System.Directory as Dir
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>) )
+import System.IO ( BufferMode (NoBuffering),
+  hSetBuffering, stderr, stdout )
 import System.Process ( callProcess )
 import Text.Printf ( printf )
 
@@ -22,18 +24,21 @@ import HSInstall.System.Directory ( copyTree )
 
 
 main :: IO ()
-main = withExceptionHandling $ do
-  opts <- parseOpts
+main = do
+  mapM_ (flip hSetBuffering NoBuffering) [ stdout, stderr ]
+  withExceptionHandling $ do
+    opts <- parseOpts
 
-  when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
+    when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
 
-  di <- constructDeploymentInfo opts
+    di <- constructDeploymentInfo opts
 
-  when (optClean opts) $ callProcess "stack" ["clean"]
-  deployApplication (optBuildMode opts) di
-  case optBuildMode opts of
-    AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
-    Project         -> return ()
+    -- when (optClean opts) $ callProcess "stack" ["clean"]
+    when (optClean opts) $ callProcess "cabal" ["clean"]
+    deployApplication (optBuildMode opts) di
+    case optBuildMode opts of
+      AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
+      Project         -> return ()
 
 
 modeToStackArg :: BuildMode -> String
