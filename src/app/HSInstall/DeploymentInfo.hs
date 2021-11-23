@@ -10,6 +10,7 @@ module HSInstall.DeploymentInfo
 
   -- re-exporting
   , normal
+  , prettyShow
   )
   where
 
@@ -29,6 +30,7 @@ import Distribution.PackageDescription.Parsec
   ( readGenericPackageDescription )
 import Distribution.Pretty ( prettyShow )
 import Distribution.Types.PackageName ( unPackageName )
+import Distribution.Types.Version ( Version )
 import Distribution.Verbosity ( normal )
 import GHC.Generics
 import System.Directory ( getDirectoryContents )
@@ -77,7 +79,7 @@ data DeploymentInfo = DeploymentInfo
   , shareDir :: ShareDir
   , docDir :: DocDir
   , rsrcDir :: RsrcDir
-  , version :: String
+  , version :: Version
   }
 
 
@@ -99,13 +101,13 @@ constructDeploymentInfo buildTool opts = do
 constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo
 constructDeploymentInfo' opts pkgId =
   DeploymentInfo (PrefixDir prefixFp) (BinDir binFp) (ShareDir shareFp)
-    (DocDir $ shareFp </> "doc") (RsrcDir $ shareFp </> "resources") version'
+    (DocDir $ shareFp </> "doc") (RsrcDir $ shareFp </> "resources")
+    (pkgVersion pkgId)
 
   where
     prefixFp = computePrefixDir (optPrefix opts) (optBuildMode opts)
     binFp = prefixFp </> "bin"
     project = unPackageName . pkgName $ pkgId
-    version' = prettyShow . pkgVersion $ pkgId
     shareFp = prefixFp </> "share" </> project
 
 

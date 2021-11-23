@@ -16,6 +16,7 @@ import HSInstall.DeploymentInfo
   ( BinDir (..)
   , PrefixDir (..)
   , DeploymentInfo (binDir, prefixDir, version)
+  , prettyShow
   )
 
 
@@ -63,7 +64,7 @@ mkAppImage exe di CreateNewDesktop = do
 
 mkAppImage' :: String -> DeploymentInfo -> String -> IO ()
 mkAppImage' exe di desktopArg = do
-  setEnv "VERSION" $ version di
+  setEnv "VERSION" (prettyShow . version $ di)
   callProcess "linuxdeploy-x86_64.AppImage"
     [ "--appdir=" ++ (takeDirectory . (op PrefixDir) . prefixDir $ di)
     , "--executable=" <> (((op BinDir) . binDir $ di) </> exe)
