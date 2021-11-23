@@ -56,29 +56,15 @@ newtype BinDir = BinDir FilePath
 
 instance Newtype BinDir
 
-newtype ShareDir = ShareDir FilePath
-
-instance Newtype ShareDir FilePath where
-  pack = ShareDir
-  unpack (ShareDir fp) = fp
-
 newtype DocDir = DocDir FilePath
   deriving Generic
 
 instance Newtype DocDir
 
-newtype RsrcDir = RsrcDir FilePath
-
-instance Newtype RsrcDir FilePath where
-  pack = RsrcDir
-  unpack (RsrcDir fp) = fp
-
 data DeploymentInfo = DeploymentInfo
   { prefixDir :: PrefixDir
   , binDir :: BinDir
-  , shareDir :: ShareDir
   , docDir :: DocDir
-  , rsrcDir :: RsrcDir
   , version :: Version
   }
 
@@ -100,9 +86,8 @@ constructDeploymentInfo buildTool opts = do
 
 constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo
 constructDeploymentInfo' opts pkgId =
-  DeploymentInfo (PrefixDir prefixFp) (BinDir binFp) (ShareDir shareFp)
-    (DocDir $ shareFp </> "doc") (RsrcDir $ shareFp </> "resources")
-    (pkgVersion pkgId)
+  DeploymentInfo (PrefixDir prefixFp) (BinDir binFp)
+    (DocDir $ shareFp </> "doc") (pkgVersion pkgId)
 
   where
     prefixFp = computePrefixDir (optPrefix opts) (optBuildMode opts)
