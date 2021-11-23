@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module HSInstall.Common
-  ( dumpStockIcon
+  ( TmplDir (..)
+  , dumpStockIcon
   , tmplDir
   )
   where

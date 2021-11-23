@@ -12,7 +12,7 @@ import Text.Printf ( printf )
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Build ( BuildTool, clean,
   determineBuildTool, installBinaries )
-import HSInstall.Common ( dumpStockIcon, tmplDir )
+import HSInstall.Common ( TmplDir (..), dumpStockIcon, tmplDir )
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , DeploymentInfo (binDir, docDir, prefixDir)
@@ -65,7 +65,8 @@ deployApplication buildTool mode di = do
     Dir.copyFile licenseFile (docFp </> licenseFile)
 
   -- Copy the static template directory
-  tmplExists <- Dir.doesDirectoryExist tmplDir
+  let tmplFp = op TmplDir tmplDir
+  tmplExists <- Dir.doesDirectoryExist tmplFp
   when tmplExists $ do
-    printf "\nCopying distribution files from template dir (%s)\n" tmplDir
-    copyTree False tmplDir ((op PrefixDir) . prefixDir $ di)
+    printf "\nCopying distribution files from template dir (%s)\n" tmplFp
+    copyTree False tmplFp ((op PrefixDir) . prefixDir $ di)

@@ -11,7 +11,7 @@ import System.Environment ( setEnv )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
-import HSInstall.Common ( dumpStockIcon, tmplDir )
+import HSInstall.Common ( TmplDir (..), dumpStockIcon, tmplDir )
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , PrefixDir (..)
@@ -24,10 +24,10 @@ data DesktopFileStatus = CreateNewDesktop | DesktopExists
 
 
 desktopDir :: FilePath
-desktopDir = tmplDir </> "share" </> "applications"
+desktopDir = (op TmplDir $ tmplDir) </> "share" </> "applications"
 
 iconDir :: FilePath
-iconDir = tmplDir </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
+iconDir = (op TmplDir $ tmplDir) </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
 
 
 prepAppImageFiles :: String -> IO DesktopFileStatus
