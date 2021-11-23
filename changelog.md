@@ -1,3 +1,16 @@
+2.7 (2021-11-23)
+
+  * Minor changes for some hlint suggestions
+  * Changed how default prefix is constructed
+  * Turned off stdout/stderr buffering
+  * Support projects that build with either cabal or stack
+  * Removed an unused import
+  * Now forcing all cabal commands to be v2-
+  * Using newtype wrappers for DeploymentInfo fields
+  * Using Haskell core type Version for version
+  * Removed shareDir and rsrcDir from DeploymentInfo
+
+
 2.6 (2020-01-12)
 
   * Moved stack resolver up to lts-14.20
