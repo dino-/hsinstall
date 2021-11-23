@@ -1,18 +1,27 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module HSInstall.Common
   ( dumpStockIcon
   , tmplDir
   )
   where
 
+import Control.Newtype.Generics
 import Data.Maybe ( fromMaybe )
+import GHC.Generics
 import HSInstall.Paths ( getShareDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
 import System.FilePath ( (</>), (<.>) )
 
 
-tmplDir :: FilePath
-tmplDir = "." </> "hsinstall"
+newtype TmplDir = TmplDir FilePath
+  deriving Generic
+
+instance Newtype TmplDir
+
+tmplDir :: TmplDir
+tmplDir = pack $ "." </> "hsinstall"
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()

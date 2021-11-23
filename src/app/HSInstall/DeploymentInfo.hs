@@ -1,7 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module HSInstall.DeploymentInfo
-  ( DeploymentInfo (..)
+  ( BinDir (..)
+  , DeploymentInfo (..)
+  , DocDir (..)
+  , PrefixDir (..)
   , constructDeploymentInfo
 
   -- re-exporting
@@ -11,6 +15,7 @@ module HSInstall.DeploymentInfo
 
 import Control.Applicative ( (<|>) )
 import Control.Monad.Trans.Maybe ( MaybeT (..), runMaybeT )
+import Control.Newtype.Generics
 import Data.List ( find, isSuffixOf )
 import Distribution.Package
   ( PackageId
@@ -25,6 +30,7 @@ import Distribution.PackageDescription.Parsec
 import Distribution.Pretty ( prettyShow )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Verbosity ( normal )
+import GHC.Generics
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>), (<.>) )
 
@@ -38,12 +44,39 @@ import HSInstall.Opts
   )
 
 
+newtype PrefixDir = PrefixDir FilePath
+  deriving Generic
+
+instance Newtype PrefixDir
+
+newtype BinDir = BinDir FilePath
+  deriving Generic
+
+instance Newtype BinDir
+
+newtype ShareDir = ShareDir FilePath
+
+instance Newtype ShareDir FilePath where
+  pack = ShareDir
+  unpack (ShareDir fp) = fp
+
+newtype DocDir = DocDir FilePath
+  deriving Generic
+
+instance Newtype DocDir
+
+newtype RsrcDir = RsrcDir FilePath
+
+instance Newtype RsrcDir FilePath where
+  pack = RsrcDir
+  unpack (RsrcDir fp) = fp
+
 data DeploymentInfo = DeploymentInfo
-  { prefixDir :: FilePath
-  , binDir :: FilePath
-  , shareDir :: FilePath
-  , docDir :: FilePath
-  , rsrcDir :: FilePath
+  { prefixDir :: PrefixDir
+  , binDir :: BinDir
+  , shareDir :: ShareDir
+  , docDir :: DocDir
+  , rsrcDir :: RsrcDir
   , version :: String
   }
 
@@ -65,15 +98,15 @@ constructDeploymentInfo buildTool opts = do
 
 constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo
 constructDeploymentInfo' opts pkgId =
-  DeploymentInfo prefixDir' binDir' shareDir'
-    (shareDir' </> "doc") (shareDir' </> "resources") version'
+  DeploymentInfo (PrefixDir prefixFp) (BinDir binFp) (ShareDir shareFp)
+    (DocDir $ shareFp </> "doc") (RsrcDir $ shareFp </> "resources") version'
 
   where
-    prefixDir' = computePrefixDir (optPrefix opts) (optBuildMode opts)
-    binDir' = prefixDir' </> "bin"
+    prefixFp = computePrefixDir (optPrefix opts) (optBuildMode opts)
+    binFp = prefixFp </> "bin"
     project = unPackageName . pkgName $ pkgId
     version' = prettyShow . pkgVersion $ pkgId
-    shareDir' = prefixDir' </> "share" </> project
+    shareFp = prefixFp </> "share" </> project
 
 
 defaultPrefix :: FilePath

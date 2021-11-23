@@ -47,6 +47,7 @@ executables:
     - exceptions
     - heredoc
     - hsinstall
+    - newtype-generics
     - optparse-applicative
     - process
     - safe-exceptions

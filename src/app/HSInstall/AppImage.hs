@@ -5,13 +5,18 @@ module HSInstall.AppImage
   where
 
 import Control.Monad ( unless )
+import Control.Newtype.Generics ( op )
 import qualified System.Directory as Dir
 import System.Environment ( setEnv )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
 import HSInstall.Common ( dumpStockIcon, tmplDir )
-import HSInstall.DeploymentInfo ( DeploymentInfo (binDir, prefixDir, version) )
+import HSInstall.DeploymentInfo
+  ( BinDir (..)
+  , PrefixDir (..)
+  , DeploymentInfo (binDir, prefixDir, version)
+  )
 
 
 data DesktopFileStatus = CreateNewDesktop | DesktopExists
@@ -52,7 +57,7 @@ mkAppImage exe di CreateNewDesktop = do
   let desktopFile = exe <.> "desktop"
   Dir.createDirectoryIfMissing True desktopDir
   Dir.copyFile
-    (prefixDir di </> "share" </> "applications" </> desktopFile)
+    (((op PrefixDir) . prefixDir $ di) </> "share" </> "applications" </> desktopFile)
     (desktopDir </> desktopFile)
 
 
@@ -60,8 +65,8 @@ mkAppImage' :: String -> DeploymentInfo -> String -> IO ()
 mkAppImage' exe di desktopArg = do
   setEnv "VERSION" $ version di
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory . prefixDir $ di)
-    , "--executable=" ++ (binDir di </> exe)
+    [ "--appdir=" ++ (takeDirectory . (op PrefixDir) . prefixDir $ di)
+    , "--executable=" <> (((op BinDir) . binDir $ di) </> exe)
     , desktopArg
     , "--icon-file=" ++ (iconDir </> exe <.> "svg")
     , "--output=appimage"
