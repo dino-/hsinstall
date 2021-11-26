@@ -98,10 +98,10 @@ constructDeploymentInfo' opts pkgId =
     shareFp = prefixFp </> "share" </> project
 
 
-defaultPrefix :: FilePath
-defaultPrefix = "AppDir" </> "usr"
+defaultPrefix :: PrefixDir
+defaultPrefix = PrefixDir $ "AppDir" </> "usr"
 
 computePrefixDir :: PrefixOpt -> BuildMode -> PrefixDir
 computePrefixDir (Prefix prefixFp) _                 = PrefixDir prefixFp
-computePrefixDir NoPrefixSpecified (AppImageExe exe) = PrefixDir $ exe <.> defaultPrefix
-computePrefixDir NoPrefixSpecified Project           = PrefixDir $ defaultPrefix
+computePrefixDir NoPrefixSpecified (AppImageExe exe) = over PrefixDir (exe <.>) defaultPrefix
+computePrefixDir NoPrefixSpecified Project           = defaultPrefix
