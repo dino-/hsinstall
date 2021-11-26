@@ -71,4 +71,4 @@ deployApplication buildTool mode di = do
   tmplExists <- Dir.doesDirectoryExist tmplFp
   when tmplExists $ do
     printf "\nCopying distribution files from template dir (%s)\n" tmplFp
-    copyTree False tmplFp ((op PrefixDir) . prefixDir $ di)
+    copyTree False tmplFp (op PrefixDir . prefixDir $ di)
