@@ -32,7 +32,7 @@ import Distribution.Pretty ( prettyShow )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Types.Version ( Version )
 import Distribution.Verbosity ( normal )
-import GHC.Generics
+import GHC.Generics hiding ( Prefix )
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>), (<.>) )
 
@@ -42,7 +42,9 @@ import HSInstall.Except
   , throwM
   )
 import HSInstall.Opts
-  ( BuildMode (AppImageExe, Project) , Options (..)
+  ( BuildMode (AppImageExe, Project)
+  , PrefixOpt (..)
+  , Options (..)
   )
 
 
@@ -86,11 +88,11 @@ constructDeploymentInfo buildTool opts = do
 
 constructDeploymentInfo' :: Options -> PackageId -> DeploymentInfo
 constructDeploymentInfo' opts pkgId =
-  DeploymentInfo (PrefixDir prefixFp) (BinDir binFp)
+  DeploymentInfo prefixDir' (BinDir binFp)
     (DocDir $ shareFp </> "doc") (pkgVersion pkgId)
 
   where
-    prefixFp = computePrefixDir (optPrefix opts) (optBuildMode opts)
+    prefixDir'@(PrefixDir prefixFp) = computePrefixDir (optPrefix opts) (optBuildMode opts)
     binFp = prefixFp </> "bin"
     project = unPackageName . pkgName $ pkgId
     shareFp = prefixFp </> "share" </> project
@@ -99,7 +101,7 @@ constructDeploymentInfo' opts pkgId =
 defaultPrefix :: FilePath
 defaultPrefix = "AppDir" </> "usr"
 
-computePrefixDir :: Maybe FilePath -> BuildMode -> FilePath
-computePrefixDir (Just prefix') _                 = prefix'
-computePrefixDir Nothing        (AppImageExe exe) = exe <.> defaultPrefix
-computePrefixDir Nothing        Project           = defaultPrefix
+computePrefixDir :: PrefixOpt -> BuildMode -> PrefixDir
+computePrefixDir (Prefix prefixFp) _                 = PrefixDir prefixFp
+computePrefixDir NoPrefixSpecified (AppImageExe exe) = PrefixDir $ exe <.> defaultPrefix
+computePrefixDir NoPrefixSpecified Project           = PrefixDir $ defaultPrefix

@@ -22,7 +22,9 @@ import HSInstall.DeploymentInfo
   )
 import HSInstall.Except ( withExceptionHandling )
 import HSInstall.Opts
-  ( BuildMode (AppImageExe, Project), Options (..)
+  ( BuildMode (AppImageExe, Project)
+  , CleanSwitch (..), DumpIconSwitch (..)
+  , Options (..)
   , parseOpts
   )
 import HSInstall.System.Directory ( copyTree )
@@ -37,11 +39,11 @@ main = do
     buildTool <- determineBuildTool
     putStrLn $ "Build tool detected: " <> show buildTool
 
-    when (optDumpIcon opts) $ dumpStockIcon Nothing >> exitSuccess
+    when (op DumpIconSwitch . optDumpIcon $ opts) $ dumpStockIcon Nothing >> exitSuccess
 
     di <- constructDeploymentInfo buildTool opts
 
-    when (optClean opts) $ clean buildTool
+    when (op CleanSwitch . optClean $ opts) $ clean buildTool
     deployApplication buildTool (optBuildMode opts) di
     case optBuildMode opts of
       AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di

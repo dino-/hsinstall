@@ -1,14 +1,20 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module HSInstall.Opts
   ( BuildMode (..)
+  , CleanSwitch (..)
+  , DumpIconSwitch (..)
   , Options (..)
+  , PrefixOpt (..)
   , parseOpts
   )
   where
 
+import Control.Newtype.Generics
 import Data.Version ( showVersion )
+import GHC.Generics hiding ( Prefix )
 import Options.Applicative
 import Paths_hsinstall ( version )
 import System.Environment ( getProgName )
@@ -17,27 +23,40 @@ import Text.PrettyPrint.ANSI.Leijen ( string )
 import Text.Printf ( printf )
 
 
+newtype CleanSwitch = CleanSwitch Bool
+  deriving Generic
+
+instance Newtype CleanSwitch
+
+newtype DumpIconSwitch = DumpIconSwitch Bool
+  deriving Generic
+
+instance Newtype DumpIconSwitch
+
 data BuildMode = AppImageExe String | Project
 
+data PrefixOpt = Prefix FilePath | NoPrefixSpecified
 
 data Options = Options
-  { optClean :: Bool
-  , optDumpIcon :: Bool
+  { optClean :: CleanSwitch
+  , optDumpIcon :: DumpIconSwitch
   , optBuildMode :: BuildMode
-  , optPrefix :: Maybe FilePath
+  , optPrefix :: PrefixOpt
   }
 
 
 parser :: Parser Options
 parser = Options
-  <$> switch
-      (  long "clean"
-      <> short 'c'
-      <> help "Do stack or cabal 'clean' first"
+  <$> ( CleanSwitch <$> switch
+        (  long "clean"
+        <> short 'c'
+        <> help "Do stack or cabal 'clean' first"
+        )
       )
-  <*> switch
-      (  long "dump-stock-icon"
-      <> help "Save a default icon, unix-terminal.svg, to the current working directory"
+  <*> ( DumpIconSwitch <$> switch
+        (  long "dump-stock-icon"
+        <> help "Save a default icon, unix-terminal.svg, to the current working directory"
+        )
       )
   <*> ( maybe Project AppImageExe <$> optional
         ( strOption
@@ -48,11 +67,13 @@ parser = Options
           )
         )
       )
-  <*> optional ( strOption
-        (  long "prefix"
-        <> short 'p'
-        <> metavar "DIR"
-        <> help "Install prefix directory (Default: AppDir/usr)"
+  <*> ( maybe NoPrefixSpecified Prefix <$> optional
+        ( strOption
+          (  long "prefix"
+          <> short 'p'
+          <> metavar "DIR"
+          <> help "Install prefix directory (Default: AppDir/usr)"
+          )
         )
       )
 
