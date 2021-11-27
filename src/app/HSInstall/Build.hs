@@ -24,7 +24,7 @@ instance Show BuildTool where
 determineBuildTool :: IO BuildTool
 determineBuildTool = do
   dirContents <- getDirectoryContents "."
-  pure $ if any (== "stack.yaml") dirContents
+  pure $ if "stack.yaml" `elem` dirContents
     then Stack
     else Cabal
 

@@ -24,10 +24,10 @@ data DesktopFileStatus = CreateNewDesktop | DesktopExists
 
 
 desktopDir :: FilePath
-desktopDir = (op TmplDir $ tmplDir) </> "share" </> "applications"
+desktopDir = op TmplDir tmplDir </> "share" </> "applications"
 
 iconDir :: FilePath
-iconDir = (op TmplDir $ tmplDir) </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
+iconDir = op TmplDir tmplDir </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
 
 
 prepAppImageFiles :: String -> IO DesktopFileStatus
@@ -58,7 +58,7 @@ mkAppImage exe di CreateNewDesktop = do
   let desktopFile = exe <.> "desktop"
   Dir.createDirectoryIfMissing True desktopDir
   Dir.copyFile
-    (((op PrefixDir) . prefixDir $ di) </> "share" </> "applications" </> desktopFile)
+    ((op PrefixDir . prefixDir $ di) </> "share" </> "applications" </> desktopFile)
     (desktopDir </> desktopFile)
 
 
@@ -66,8 +66,8 @@ mkAppImage' :: String -> DeploymentInfo -> String -> IO ()
 mkAppImage' exe di desktopArg = do
   setEnv "VERSION" (prettyShow . version $ di)
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory . (op PrefixDir) . prefixDir $ di)
-    , "--executable=" <> (((op BinDir) . binDir $ di) </> exe)
+    [ "--appdir=" ++ (takeDirectory . op PrefixDir . prefixDir $ di)
+    , "--executable=" <> ((op BinDir . binDir $ di) </> exe)
     , desktopArg
     , "--icon-file=" ++ (iconDir </> exe <.> "svg")
     , "--output=appimage"
