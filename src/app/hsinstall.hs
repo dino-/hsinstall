@@ -46,8 +46,8 @@ main = do
     when (op CleanSwitch . optClean $ opts) $ clean buildTool
     deployApplication buildTool (optBuildMode opts) di
     case optBuildMode opts of
-      AppImageExe exe -> prepAppImageFiles exe >>= mkAppImage exe di
-      Project         -> return ()
+      AppImageExe exePath -> prepAppImageFiles exePath >>= mkAppImage exePath di
+      Project             -> return ()
 
 
 deployApplication :: BuildTool -> BuildMode -> DeploymentInfo -> IO ()

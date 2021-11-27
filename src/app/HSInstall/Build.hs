@@ -10,6 +10,7 @@ module HSInstall.Build
 import System.Directory ( getDirectoryContents )
 import System.Process ( callProcess )
 
+import HSInstall.Common ( ExePath (..) )
 import HSInstall.Except ( justDoIt )
 import HSInstall.Opts ( BuildMode (AppImageExe, Project) )
 
@@ -35,8 +36,8 @@ clean Stack = callProcess "stack" ["clean"]
 
 
 modeToStackArg :: BuildMode -> String
-modeToStackArg (AppImageExe exe) = ':' : exe
-modeToStackArg Project           = ""
+modeToStackArg (AppImageExe (ExePath exeFp)) = ':' : exeFp
+modeToStackArg Project                       = ""
 
 
 installBinaries :: BuildTool -> BuildMode -> FilePath -> IO ()
