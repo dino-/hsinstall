@@ -22,7 +22,7 @@ import Text.Heredoc ( here )
 import Text.PrettyPrint.ANSI.Leijen ( string )
 import Text.Printf ( printf )
 
-import HSInstall.Common ( ExePath (..) )
+import HSInstall.Common ( ExeFile (..) )
 
 
 newtype CleanSwitch = CleanSwitch Bool
@@ -35,7 +35,7 @@ newtype DumpIconSwitch = DumpIconSwitch Bool
 
 instance Newtype DumpIconSwitch
 
-data BuildMode = AppImageExe ExePath | Project
+data BuildMode = AppImageExe ExeFile | Project
 
 data PrefixOpt = Prefix FilePath | NoPrefixSpecified
 
@@ -60,7 +60,7 @@ parser = Options
         <> help "Save a default icon, unix-terminal.svg, to the current working directory"
         )
       )
-  <*> ( maybe Project (AppImageExe . ExePath) <$> optional
+  <*> ( maybe Project (AppImageExe . ExeFile) <$> optional
         ( strOption
           (  long "mk-appimage"
           <> short 'i'

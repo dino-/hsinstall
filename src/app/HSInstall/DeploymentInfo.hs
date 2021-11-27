@@ -37,7 +37,7 @@ import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>), (<.>) )
 
 import HSInstall.Build ( BuildTool, makeCabal )
-import HSInstall.Common ( ExePath (..) )
+import HSInstall.Common ( ExeFile (..) )
 import HSInstall.Except
   ( HSInstallException (NoCabalFiles)
   , throwM
@@ -104,6 +104,6 @@ defaultPrefix = PrefixDir $ "AppDir" </> "usr"
 
 computePrefixDir :: PrefixOpt -> BuildMode -> PrefixDir
 computePrefixDir (Prefix prefixFp) _ = PrefixDir prefixFp
-computePrefixDir NoPrefixSpecified (AppImageExe (ExePath exeFp)) =
+computePrefixDir NoPrefixSpecified (AppImageExe (ExeFile exeFp)) =
   over PrefixDir (exeFp <.>) defaultPrefix
 computePrefixDir NoPrefixSpecified Project = defaultPrefix

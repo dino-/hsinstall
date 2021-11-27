@@ -10,7 +10,7 @@ module HSInstall.Build
 import System.Directory ( getDirectoryContents )
 import System.Process ( callProcess )
 
-import HSInstall.Common ( ExePath (..) )
+import HSInstall.Common ( ExeFile (..) )
 import HSInstall.Except ( justDoIt )
 import HSInstall.Opts ( BuildMode (AppImageExe, Project) )
 
@@ -36,7 +36,7 @@ clean Stack = callProcess "stack" ["clean"]
 
 
 modeToStackArg :: BuildMode -> String
-modeToStackArg (AppImageExe (ExePath exeFp)) = ':' : exeFp
+modeToStackArg (AppImageExe (ExeFile exeFp)) = ':' : exeFp
 modeToStackArg Project                       = ""
 
 

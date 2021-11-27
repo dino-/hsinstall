@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module HSInstall.Common
-  ( ExePath (..)
+  ( ExeFile (..)
   , TmplDir (..)
   , dumpStockIcon
   , tmplDir
@@ -26,10 +26,10 @@ tmplDir :: TmplDir
 tmplDir = pack $ "." </> "hsinstall"
 
 
-newtype ExePath = ExePath FilePath
+newtype ExeFile = ExeFile FilePath
   deriving Generic
 
-instance Newtype ExePath
+instance Newtype ExeFile
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()
