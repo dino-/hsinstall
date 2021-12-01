@@ -1,4 +1,4 @@
-2.7 (2021-11-23)
+2.7 (2021-12-01)
 
   * Minor changes for some hlint suggestions
   * Changed how default prefix is constructed
@@ -9,6 +9,9 @@
   * Using newtype wrappers for DeploymentInfo fields
   * Using Haskell core type Version for version
   * Removed shareDir and rsrcDir from DeploymentInfo
+  * Now using newtype wrappers for all Options fields
+  * Added more newtype wrappers around many data types
+  * Applied hlint suggestions
 
 
 2.6 (2020-01-12)
