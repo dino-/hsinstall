@@ -8,7 +8,7 @@ maintainer: Dino Morelli <dino@ui3.info>
 copyright: 2016-2020 Dino Morelli
 category: Utility
 extra-source-files:
-- changelog.md
+- CHANGELOG.md
 - doc/hcar/hsinstall.tex
 - .gitignore
 - hsinstall/share/applications/hsinstall.desktop
