@@ -1,6 +1,5 @@
 2.7 (2021-12-01)
 
-  * Minor changes for some hlint suggestions
   * Changed how default prefix is constructed
   * Turned off stdout/stderr buffering
   * Support projects that build with either cabal or stack
@@ -12,6 +11,7 @@
   * Now using newtype wrappers for all Options fields
   * Added more newtype wrappers around many data types
   * Applied hlint suggestions
+  * Moved stack resolver up to lts-18.18
 
 
 2.6 (2020-01-12)
