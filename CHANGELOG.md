@@ -1,3 +1,10 @@
+2.8 (2023-01-28)
+
+  * Fix for change to the Cabal Distribution API
+  * Switched from hpack to modern cabal
+  * Moved copyright date up to 2023
+
+
 2.7 (2021-12-01)
 
   * Changed how default prefix is constructed
