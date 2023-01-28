@@ -63,6 +63,8 @@ common lang
     -Wincomplete-uni-patterns
     -Wpartial-fields
     -Wredundant-constraints
+  autogen-modules:
+    Paths_hsinstall
 
 library
   import: lang
