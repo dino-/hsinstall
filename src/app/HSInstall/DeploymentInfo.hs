@@ -26,9 +26,9 @@ import Distribution.PackageDescription
   ( GenericPackageDescription (packageDescription)
   , PackageDescription (package)
   )
-import Distribution.PackageDescription.Parsec
-  ( readGenericPackageDescription )
 import Distribution.Pretty ( prettyShow )
+import Distribution.Simple.PackageDescription
+  ( readGenericPackageDescription )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Types.Version ( Version )
 import Distribution.Verbosity ( normal )
