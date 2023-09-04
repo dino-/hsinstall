@@ -27,7 +27,7 @@ import Distribution.PackageDescription
   , PackageDescription (package)
   )
 import Distribution.Pretty ( prettyShow )
-import Distribution.Simple.PackageDescription
+import Distribution.PackageDescription.Parsec
   ( readGenericPackageDescription )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Types.Version ( Version )
