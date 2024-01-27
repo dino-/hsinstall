@@ -67,7 +67,7 @@ mkAppImage exeFile di CreateNewDesktop = do
 
 mkAppImage' :: ExeFile -> DeploymentInfo -> Arg -> IO ()
 mkAppImage' (ExeFile exeFp) di (Arg desktopArg) = do
-  setEnv "VERSION" (prettyShow . version $ di)
+  setEnv "LINUXDEPLOY_OUTPUT_VERSION" (prettyShow . version $ di)
   callProcess "linuxdeploy-x86_64.AppImage"
     [ "--appdir=" ++ (takeDirectory . op PrefixDir . prefixDir $ di)
     , "--executable=" <> ((op BinDir . binDir $ di) </> exeFp)
