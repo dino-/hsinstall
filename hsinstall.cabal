@@ -9,7 +9,7 @@ homepage: https://github.com/dino-/hsinstall#readme
 bug-reports: https://github.com/dino-/hsinstall/issues
 author: Dino Morelli
 maintainer: Dino Morelli <dino@ui3.info>
-copyright: 2016-2023 Dino Morelli
+copyright: 2016 Dino Morelli
 license: ISC
 license-file: LICENSE
 build-type: Simple
