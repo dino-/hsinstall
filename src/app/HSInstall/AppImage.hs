@@ -1,17 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
 
 module HSInstall.AppImage
   ( mkAppImage, prepAppImageFiles )
   where
 
 import Control.Monad ( unless )
-import Control.Newtype.Generics ( op )
 import qualified System.Directory as Dir
 import System.Environment ( setEnv )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
-import HSInstall.Common ( ExeFile (..), TmplDir (..), dumpStockIcon
+import HSInstall.Common ( ExeFile (..), TmplDir (v), dumpStockIcon
   , tmplDir )
 import HSInstall.DeploymentInfo
   ( BinDir (..)
@@ -25,10 +24,10 @@ data DesktopFileStatus = CreateNewDesktop | DesktopExists
 
 
 desktopDir :: FilePath
-desktopDir = op TmplDir tmplDir </> "share" </> "applications"
+desktopDir = tmplDir.v </> "share" </> "applications"
 
 iconDir :: FilePath
-iconDir = op TmplDir tmplDir </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
+iconDir = tmplDir.v </> "share" </> "icons" </> "hicolor" </> "scalable" </> "apps"
 
 
 prepAppImageFiles :: ExeFile -> IO DesktopFileStatus
@@ -52,16 +51,16 @@ mkAppImage :: ExeFile -> DeploymentInfo -> DesktopFileStatus -> IO ()
 
 mkAppImage exeFile di DesktopExists = do
   let desktopArg = Arg ("--desktop-file=" <>
-        (desktopDir </> op ExeFile exeFile <.> "desktop"))
+        (desktopDir </> exeFile.v <.> "desktop"))
   mkAppImage' exeFile di desktopArg
 
 mkAppImage exeFile di CreateNewDesktop = do
   mkAppImage' exeFile di (Arg "--create-desktop-file")
   -- Now copy the freshly-created .desktop file into the project sources
-  let desktopFile = op ExeFile exeFile <.> "desktop"
+  let desktopFile = exeFile.v <.> "desktop"
   Dir.createDirectoryIfMissing True desktopDir
   Dir.copyFile
-    ((op PrefixDir . prefixDir $ di) </> "share" </> "applications" </> desktopFile)
+    (di.prefixDir.v </> "share" </> "applications" </> desktopFile)
     (desktopDir </> desktopFile)
 
 
@@ -69,8 +68,8 @@ mkAppImage' :: ExeFile -> DeploymentInfo -> Arg -> IO ()
 mkAppImage' (ExeFile exeFp) di (Arg desktopArg) = do
   setEnv "LINUXDEPLOY_OUTPUT_VERSION" (prettyShow . version $ di)
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ (takeDirectory . op PrefixDir . prefixDir $ di)
-    , "--executable=" <> ((op BinDir . binDir $ di) </> exeFp)
+    [ "--appdir=" ++ takeDirectory di.prefixDir.v
+    , "--executable=" <> (di.binDir.v </> exeFp)
     , desktopArg
     , "--icon-file=" ++ (iconDir </> exeFp <.> "svg")
     , "--output=appimage"

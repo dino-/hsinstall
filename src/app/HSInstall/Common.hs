@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module HSInstall.Common
   ( ExeFile (..)
@@ -8,28 +8,20 @@ module HSInstall.Common
   )
   where
 
-import Control.Newtype.Generics
 import Data.Maybe ( fromMaybe )
-import GHC.Generics
 import HSInstall.Paths ( getShareDir )
 import Paths_hsinstall ( getDataDir )
 import System.Directory ( copyFile )
 import System.FilePath ( (</>), (<.>) )
 
 
-newtype TmplDir = TmplDir FilePath
-  deriving Generic
-
-instance Newtype TmplDir
+newtype TmplDir = TmplDir { v :: FilePath }
 
 tmplDir :: TmplDir
-tmplDir = pack $ "." </> "hsinstall"
+tmplDir = TmplDir $ "." </> "hsinstall"
 
 
-newtype ExeFile = ExeFile FilePath
-  deriving Generic
-
-instance Newtype ExeFile
+newtype ExeFile = ExeFile { v :: FilePath }
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()

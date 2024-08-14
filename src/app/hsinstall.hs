@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
 
 import Control.Monad ( when )
-import Control.Newtype.Generics ( op )
 import qualified System.Directory as Dir
 import System.Exit ( exitSuccess )
 import System.FilePath ( (</>) )
@@ -12,7 +11,7 @@ import Text.Printf ( printf )
 import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
 import HSInstall.Build ( BuildTool, clean,
   determineBuildTool, installBinaries )
-import HSInstall.Common ( TmplDir (..), dumpStockIcon, tmplDir )
+import HSInstall.Common ( TmplDir (v), dumpStockIcon, tmplDir )
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , DeploymentInfo (binDir, docDir, prefixDir)
@@ -39,11 +38,11 @@ main = do
     buildTool <- determineBuildTool
     putStrLn $ "Build tool detected: " <> show buildTool
 
-    when (op DumpIconSwitch . optDumpIcon $ opts) $ dumpStockIcon Nothing >> exitSuccess
+    when opts.optDumpIcon.v $ dumpStockIcon Nothing >> exitSuccess
 
     di <- constructDeploymentInfo buildTool opts
 
-    when (op CleanSwitch . optClean $ opts) $ clean buildTool
+    when opts.optClean.v $ clean buildTool
     deployApplication buildTool (optBuildMode opts) di
     case optBuildMode opts of
       AppImageExe exePath -> prepAppImageFiles exePath >>= mkAppImage exePath di
@@ -53,7 +52,7 @@ main = do
 deployApplication :: BuildTool -> BuildMode -> DeploymentInfo -> IO ()
 deployApplication buildTool mode di = do
   -- Copy the binaries
-  let binFp = op BinDir . binDir $ di
+  let binFp = di.binDir.v
   Dir.createDirectoryIfMissing True binFp
   installBinaries buildTool mode binFp
 
@@ -62,13 +61,13 @@ deployApplication buildTool mode di = do
   licenseFileExists <- Dir.doesFileExist licenseFile
   when licenseFileExists $ do
     printf "\nCopying %s\n" licenseFile
-    let docFp = op DocDir . docDir $ di
+    let docFp = di.docDir.v
     Dir.createDirectoryIfMissing True docFp
     Dir.copyFile licenseFile (docFp </> licenseFile)
 
   -- Copy the static template directory
-  let tmplFp = op TmplDir tmplDir
+  let tmplFp = tmplDir.v
   tmplExists <- Dir.doesDirectoryExist tmplFp
   when tmplExists $ do
     printf "\nCopying distribution files from template dir (%s)\n" tmplFp
-    copyTree False tmplFp (op PrefixDir . prefixDir $ di)
+    copyTree False tmplFp di.prefixDir.v

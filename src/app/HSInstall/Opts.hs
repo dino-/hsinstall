@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE DuplicateRecordFields, OverloadedStrings, QuasiQuotes #-}
 
 module HSInstall.Opts
   ( BuildMode (..)
@@ -12,9 +10,7 @@ module HSInstall.Opts
   )
   where
 
-import Control.Newtype.Generics
 import Data.Version ( showVersion )
-import GHC.Generics hiding ( Prefix )
 import Options.Applicative
 import Paths_hsinstall ( version )
 import System.Environment ( getProgName )
@@ -25,15 +21,9 @@ import Text.Printf ( printf )
 import HSInstall.Common ( ExeFile (..) )
 
 
-newtype CleanSwitch = CleanSwitch Bool
-  deriving Generic
+newtype CleanSwitch = CleanSwitch { v :: Bool }
 
-instance Newtype CleanSwitch
-
-newtype DumpIconSwitch = DumpIconSwitch Bool
-  deriving Generic
-
-instance Newtype DumpIconSwitch
+newtype DumpIconSwitch = DumpIconSwitch { v :: Bool }
 
 data BuildMode = AppImageExe ExeFile | Project
 

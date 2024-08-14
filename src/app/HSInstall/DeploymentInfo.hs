@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields, OverloadedRecordDot, OverloadedStrings #-}
 
 module HSInstall.DeploymentInfo
   ( BinDir (..)
@@ -16,7 +15,6 @@ module HSInstall.DeploymentInfo
 
 import Control.Applicative ( (<|>) )
 import Control.Monad.Trans.Maybe ( MaybeT (..), runMaybeT )
-import Control.Newtype.Generics
 import Data.List ( find, isSuffixOf )
 import Distribution.Package
   ( PackageId
@@ -31,7 +29,6 @@ import Distribution.Simple.PackageDescription ( readGenericPackageDescription )
 import Distribution.Types.PackageName ( unPackageName )
 import Distribution.Types.Version ( Version )
 import Distribution.Verbosity ( normal )
-import GHC.Generics hiding ( Prefix )
 import System.Directory ( getDirectoryContents )
 import System.FilePath ( (</>), (<.>) )
 
@@ -48,20 +45,11 @@ import HSInstall.Opts
   )
 
 
-newtype PrefixDir = PrefixDir FilePath
-  deriving Generic
+newtype PrefixDir = PrefixDir { v :: FilePath }
 
-instance Newtype PrefixDir
+newtype BinDir = BinDir { v :: FilePath }
 
-newtype BinDir = BinDir FilePath
-  deriving Generic
-
-instance Newtype BinDir
-
-newtype DocDir = DocDir FilePath
-  deriving Generic
-
-instance Newtype DocDir
+newtype DocDir = DocDir { v :: FilePath }
 
 data DeploymentInfo = DeploymentInfo
   { prefixDir :: PrefixDir
@@ -104,5 +92,5 @@ defaultPrefix = PrefixDir $ "AppDir" </> "usr"
 computePrefixDir :: PrefixOpt -> BuildMode -> PrefixDir
 computePrefixDir (Prefix prefixFp) _ = PrefixDir prefixFp
 computePrefixDir NoPrefixSpecified (AppImageExe (ExeFile exeFp)) =
-  over PrefixDir (exeFp <.>) defaultPrefix
+  PrefixDir $ exeFp <.> defaultPrefix.v
 computePrefixDir NoPrefixSpecified Project = defaultPrefix
