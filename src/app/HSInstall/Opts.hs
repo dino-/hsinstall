@@ -18,7 +18,7 @@ import Text.Heredoc ( here )
 import Text.PrettyPrint.ANSI.Leijen ( string )
 import Text.Printf ( printf )
 
-import HSInstall.Common ( ExeFile (..) )
+import HSInstall.Common ( ExeFile (..), Signing (SigningKeyId, NoSignature) )
 
 
 newtype CleanSwitch = CleanSwitch { v :: Bool }
@@ -34,6 +34,7 @@ data Options = Options
   , optDumpIcon :: DumpIconSwitch
   , optBuildMode :: BuildMode
   , optPrefix :: PrefixOpt
+  , optSigning :: Signing
   }
 
 
@@ -50,24 +51,27 @@ parser = Options
         <> help "Save a default icon, unix-terminal.svg, to the current working directory"
         )
       )
-  <*> ( maybe Project (AppImageExe . ExeFile) <$> optional
-        ( strOption
-          (  long "mk-appimage"
-          <> short 'i'
-          <> metavar "EXE"
-          <> help "Prepare the AppDir structure and build an AppImage for EXE. Changes PREFIX to EXE.AppDir/usr."
-          )
+  <*> option ( (AppImageExe . ExeFile) <$> str )
+        (  long "mk-appimage"
+        <> short 'i'
+        <> metavar "EXE"
+        <> help "Prepare the AppDir structure and build an AppImage for EXE. Changes PREFIX to EXE.AppDir/usr."
+        <> value Project
         )
-      )
-  <*> ( maybe NoPrefixSpecified Prefix <$> optional
-        ( strOption
-          (  long "prefix"
-          <> short 'p'
-          <> metavar "DIR"
-          <> help "Install prefix directory (Default: AppDir/usr)"
-          )
+  <*> option ( Prefix <$> str )
+        (  long "prefix"
+        <> short 'p'
+        <> metavar "DIR"
+        <> help "Install prefix directory (Default: AppDir/usr)"
+        <> value NoPrefixSpecified
         )
-      )
+  <*> option ( SigningKeyId <$> str )
+        (  long "sign"
+        <> short 's'
+        <> metavar "KEY_ID"
+        <> help "Sign the AppImage with the specified GPG2 key id"
+        <> value NoSignature
+        )
 
 
 versionHelper :: String -> Parser (a -> a)
@@ -133,6 +137,15 @@ If your application is a command-line program, append a line containing this to 
 If your application isn't a command-line program, we recommend using a proper icon instead of the hsinstall default, which is a command shell icon.
 
 For more info on AppImage: https://appimage.org/
+
+If you see failure like the following when using the -s,--sign switch:
+
+    [appimage/stderr] [sign] gpgme_op_sign(gpgme_ctx, gpgme_appimage_file_data, gpgme_sig_data, GPGME_SIG_MODE_DETACH): call failed: Inappropriate ioctl for device
+
+What's happening is gpg can't figure out a way to ask for the gpg key passphrase. Try setting the env like this
+
+    $ GPG_TTY=$(tty) hsinstall ...
+
 
 TEMPLATE DIRECTORY
 

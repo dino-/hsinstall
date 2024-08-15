@@ -2,6 +2,7 @@
 
 module HSInstall.Common
   ( ExeFile (..)
+  , Signing (..)
   , TmplDir (..)
   , dumpStockIcon
   , tmplDir
@@ -22,6 +23,9 @@ tmplDir = TmplDir $ "." </> "hsinstall"
 
 
 newtype ExeFile = ExeFile { v :: FilePath }
+
+
+data Signing = SigningKeyId String | NoSignature
 
 
 dumpStockIcon :: Maybe FilePath -> IO ()

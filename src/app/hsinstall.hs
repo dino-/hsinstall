@@ -45,7 +45,7 @@ main = do
     when opts.optClean.v $ clean buildTool
     deployApplication buildTool (optBuildMode opts) di
     case optBuildMode opts of
-      AppImageExe exePath -> prepAppImageFiles exePath >>= mkAppImage exePath di
+      AppImageExe exePath -> prepAppImageFiles exePath >>= mkAppImage (optSigning opts) exePath di
       Project             -> return ()
 
 

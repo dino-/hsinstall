@@ -10,8 +10,8 @@ import System.Environment ( setEnv )
 import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Process ( callProcess )
 
-import HSInstall.Common ( ExeFile (..), TmplDir (v), dumpStockIcon
-  , tmplDir )
+import HSInstall.Common ( ExeFile (..), Signing (SigningKeyId)
+  , TmplDir (v), dumpStockIcon , tmplDir )
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , PrefixDir (..)
@@ -47,15 +47,15 @@ prepAppImageFiles (ExeFile exeFp) = do
 
 newtype Arg = Arg String
 
-mkAppImage :: ExeFile -> DeploymentInfo -> DesktopFileStatus -> IO ()
+mkAppImage :: Signing -> ExeFile -> DeploymentInfo -> DesktopFileStatus -> IO ()
 
-mkAppImage exeFile di DesktopExists = do
+mkAppImage signing exeFile di DesktopExists = do
   let desktopArg = Arg ("--desktop-file=" <>
         (desktopDir </> exeFile.v <.> "desktop"))
-  mkAppImage' exeFile di desktopArg
+  mkAppImage' signing exeFile di desktopArg
 
-mkAppImage exeFile di CreateNewDesktop = do
-  mkAppImage' exeFile di (Arg "--create-desktop-file")
+mkAppImage signing exeFile di CreateNewDesktop = do
+  mkAppImage' signing exeFile di (Arg "--create-desktop-file")
   -- Now copy the freshly-created .desktop file into the project sources
   let desktopFile = exeFile.v <.> "desktop"
   Dir.createDirectoryIfMissing True desktopDir
@@ -64,9 +64,14 @@ mkAppImage exeFile di CreateNewDesktop = do
     (desktopDir </> desktopFile)
 
 
-mkAppImage' :: ExeFile -> DeploymentInfo -> Arg -> IO ()
-mkAppImage' (ExeFile exeFp) di (Arg desktopArg) = do
+mkAppImage' :: Signing -> ExeFile -> DeploymentInfo -> Arg -> IO ()
+mkAppImage' signing (ExeFile exeFp) di (Arg desktopArg) = do
   setEnv "LINUXDEPLOY_OUTPUT_VERSION" (prettyShow . version $ di)
+  case signing of
+    (SigningKeyId keyId) -> do
+      setEnv "LDAI_SIGN" "1"
+      setEnv "LDAI_SIGN_KEY" keyId
+    _ -> pure ()
   callProcess "linuxdeploy-x86_64.AppImage"
     [ "--appdir=" ++ takeDirectory di.prefixDir.v
     , "--executable=" <> (di.binDir.v </> exeFp)
