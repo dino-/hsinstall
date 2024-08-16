@@ -38,7 +38,7 @@ getShareDir cabalDataDir = do
   sharePathExists <- doesDirectoryExist sharePath
   if sharePathExists
     then return sharePath
-    else fail $ "Share directory " ++ sharePath ++ " does not exist"
+    else fail $ "Share directory " <> sharePath <> " does not exist"
 
 
 stripVersion :: String -> String

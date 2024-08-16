@@ -73,9 +73,9 @@ mkAppImage' signing (ExeFile exeFp) di (Arg desktopArg) = do
       setEnv "LDAI_SIGN_KEY" keyId
     _ -> pure ()
   callProcess "linuxdeploy-x86_64.AppImage"
-    [ "--appdir=" ++ takeDirectory di.prefixDir.v
+    [ "--appdir=" <> takeDirectory di.prefixDir.v
     , "--executable=" <> (di.binDir.v </> exeFp)
     , desktopArg
-    , "--icon-file=" ++ (iconDir </> exeFp <.> "svg")
+    , "--icon-file=" <> (iconDir </> exeFp <.> "svg")
     , "--output=appimage"
     ]
