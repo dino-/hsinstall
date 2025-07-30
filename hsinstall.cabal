@@ -64,7 +64,7 @@ common lang
     -Wpartial-fields
     -Wredundant-constraints
   build-depends:
-      base >=4.8 && <5.0
+      base >=3 && <5
     , directory
     , filepath
   other-modules:
