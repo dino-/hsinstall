@@ -97,12 +97,13 @@ executable hsinstall
   hs-source-dirs:
       src/app
   build-depends:
-      ansi-wl-pprint
-    , Cabal
+      Cabal
     , exceptions
+    , formatting
     , heredoc
     , hsinstall
     , optparse-applicative
+    , prettyprinter
     , process
     , safe-exceptions
     , transformers

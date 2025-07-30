@@ -11,12 +11,13 @@ module HSInstall.Opts
   where
 
 import Data.Version (showVersion)
+import Formatting ((%+), format, formatToString)
+import Formatting.ShortFormatters (s)
 import Options.Applicative
 import Paths_hsinstall (version)
+import Prettyprinter (pretty)
 import System.Environment (getProgName)
 import Text.Heredoc (here)
-import Text.PrettyPrint.ANSI.Leijen (string)
-import Text.Printf (printf)
 
 import HSInstall.Common (ExeFile (..), Signing (SigningKeyId, NoSignature))
 
@@ -76,7 +77,7 @@ parser = Options
 
 versionHelper :: String -> Parser (a -> a)
 versionHelper progName =
-  infoOption (printf "%s %s" progName (showVersion version)) $ mconcat
+  infoOption (formatToString (s %+ s) progName (showVersion version)) $ mconcat
   [ long "version"
   , help "Show version information"
   , hidden
@@ -87,13 +88,13 @@ parseOpts :: IO Options
 parseOpts = do
   pn <- getProgName
   execParser $ info (parser <**> helper <**> versionHelper pn)
-    (  header (printf "%s - Pack a haskell project into a deployable directory structure" pn)
+    (  header (formatToString (s %+ "- Pack a haskell project into a deployable directory structure") pn)
     <> footer'
     )
 
 
 footer' :: InfoMod a
-footer' = footerDoc . Just . string . printf content . showVersion $ version
+footer' = footerDoc . Just . pretty $ format content (showVersion version)
     where content = [here|OVERVIEW
 
 hsinstall is a tool for installing a Haskell software project into a directory structure for deployment. It builds upon the `stack install` and `cabal install` commands and adds these features:
@@ -166,4 +167,4 @@ If present, hsinstall will copy the contents of the `hsinstall` template directo
 
 In order to locate data files at runtime, including resources, the hsinstall project includes a library to construct the share path relative to the executable. See this source code for help with integrating this into your app: https://github.com/dino-/hsinstall/blob/master/src/lib/HSInstall/Resources.hs
 
-Version %s  Dino Morelli <dino@ui3.info>|]
+Version|] %+ s %+ " Dino Morelli <dino@ui3.info>"
