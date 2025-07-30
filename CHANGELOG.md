@@ -1,3 +1,22 @@
+2.9 (2025-07-30)
+
+  * Moved CHANGELOG.md to extra-doc-files stanza
+  * Added bounds to build-depends libraries
+  * Removed OverloadedStrings directives from source files
+  * Switched from putStrLn and printf to the formatting library
+  * Implemented some hlint suggestions
+  * Fixed odd range in build-depends for base
+  * Switched to the more modern prettyprinter library
+  * Tidied up a bit in the cabal file
+  * Removed extra whitespace in imports
+  * Moved Stackage snapshot up to lts-22.6
+  * Replaced (++) with (<>) in a few places
+  * Added optional GPG2 signing to appimage creation
+  * Switched from newtype-generics to OverloadedRecordDot
+  * Removed ending copyright year
+  * Fixed linuxdeploy version env variable name
+
+
 2.8 (2023-01-28)
 
   * Fix for change to the Cabal Distribution API
