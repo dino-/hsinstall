@@ -66,8 +66,8 @@ common lang
     -Wredundant-constraints
   build-depends:
       base >=3 && <5
-    , directory == 1.3.8.1
-    , filepath == 1.4.100.4
+    , directory >=1.3.8.1
+    , filepath >=1.4.100.4
   other-modules:
     Paths_hsinstall
   autogen-modules:
@@ -98,13 +98,13 @@ executable hsinstall
   hs-source-dirs:
       src/app
   build-depends:
-      Cabal == 3.10.1.0
-    , exceptions == 0.10.7
-    , formatting == 7.2.0
-    , heredoc == 0.2.0.0
+      Cabal >=3.10.1.0
+    , exceptions >=0.10.7
+    , formatting >=7.2.0
+    , heredoc >=0.2.0.0
     , hsinstall < 3
-    , optparse-applicative == 0.18.1.0
-    , prettyprinter == 1.7.1
-    , process == 1.6.17.0
-    , safe-exceptions == 0.1.7.4
-    , transformers == 0.6.1.0
+    , optparse-applicative >=0.18.1.0
+    , prettyprinter >=1.7.1
+    , process >=1.6.17.0
+    , safe-exceptions >=0.1.7.4
+    , transformers >=0.6.1.0
