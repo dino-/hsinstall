@@ -3,7 +3,10 @@ cabal-version: 2.2
 name: hsinstall
 version: 2.9
 synopsis: Install Haskell software
-description: This is a tool for deploying software projects into directory structures suitable for installation on a system. It builds upon the `stack install` command and adds more features. It's also a tool for easier AppImage creation.
+description: This is a tool for deploying software projects into directory
+  structures suitable for installation on a system. It builds upon the `stack
+  install` command and adds more features. It's also a tool for easier AppImage
+  creation.
 category: Utility
 homepage: https://github.com/dino-/hsinstall#readme
 bug-reports: https://github.com/dino-/hsinstall/issues
@@ -52,9 +55,6 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
     TupleSections
-  build-depends:
-      directory
-    , filepath
   ghc-options:
     -fwarn-tabs
     -Wall
@@ -63,6 +63,12 @@ common lang
     -Wincomplete-uni-patterns
     -Wpartial-fields
     -Wredundant-constraints
+  build-depends:
+      base >=4.8 && <5.0
+    , directory
+    , filepath
+  other-modules:
+    Paths_hsinstall
   autogen-modules:
     Paths_hsinstall
 
@@ -74,8 +80,7 @@ library
       Paths_hsinstall
   hs-source-dirs:
       src/lib
-  build-depends:
-      base >=4.8 && <5.0
+  -- build-depends:
 
 executable hsinstall
   import: lang
@@ -93,7 +98,6 @@ executable hsinstall
       src/app
   build-depends:
       ansi-wl-pprint
-    , base >=4.8 && <5.0
     , Cabal
     , exceptions
     , heredoc
