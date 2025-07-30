@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
 
 import Control.Monad (when)
+import Formatting ((%), (%+), fprintLn, string)
 import qualified System.Directory as Dir
 import System.Exit (exitSuccess)
 import System.FilePath ((</>))
 import System.IO (BufferMode (NoBuffering),
   hSetBuffering, stderr, stdout)
-import Text.Printf (printf)
 
 import HSInstall.AppImage (mkAppImage, prepAppImageFiles)
 import HSInstall.Build (BuildTool, clean,
@@ -36,7 +36,7 @@ main = do
     opts <- parseOpts
 
     buildTool <- determineBuildTool
-    putStrLn $ "Build tool detected: " <> show buildTool
+    fprintLn ("Build tool detected:" %+ string) $ show buildTool
 
     when opts.optDumpIcon.v $ dumpStockIcon Nothing >> exitSuccess
 
@@ -60,7 +60,7 @@ deployApplication buildTool mode di = do
   let licenseFile = "LICENSE"
   licenseFileExists <- Dir.doesFileExist licenseFile
   when licenseFileExists $ do
-    printf "\nCopying %s\n" licenseFile
+    fprintLn ("\nCopying" %+ string) licenseFile
     let docFp = di.docDir.v
     Dir.createDirectoryIfMissing True docFp
     Dir.copyFile licenseFile (docFp </> licenseFile)
@@ -69,5 +69,5 @@ deployApplication buildTool mode di = do
   let tmplFp = tmplDir.v
   tmplExists <- Dir.doesDirectoryExist tmplFp
   when tmplExists $ do
-    printf "\nCopying distribution files from template dir (%s)\n" tmplFp
+    fprintLn ("\nCopying distribution files from template dir (" % string % ")") tmplFp
     copyTree False tmplFp di.prefixDir.v
