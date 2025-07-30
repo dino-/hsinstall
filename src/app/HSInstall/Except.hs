@@ -11,11 +11,11 @@ module HSInstall.Except
   )
   where
 
-import Control.Exception.Safe
-  ( Exception, Handler (..), Typeable, catches, catchIO, throwM )
-import Control.Monad.Catch ( MonadCatch )
-import GHC.IO.Exception ( IOException )
-import System.Exit ( die )
+import Control.Exception.Safe (Exception, Handler (..), Typeable, catches,
+  catchIO, throwM)
+import Control.Monad.Catch (MonadCatch)
+import GHC.IO.Exception (IOException)
+import System.Exit (die)
 
 
 data HSInstallException

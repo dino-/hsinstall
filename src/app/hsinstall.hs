@@ -1,17 +1,17 @@
 {-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
 
-import Control.Monad ( when )
+import Control.Monad (when)
 import qualified System.Directory as Dir
-import System.Exit ( exitSuccess )
-import System.FilePath ( (</>) )
-import System.IO ( BufferMode (NoBuffering),
-  hSetBuffering, stderr, stdout )
-import Text.Printf ( printf )
+import System.Exit (exitSuccess)
+import System.FilePath ((</>))
+import System.IO (BufferMode (NoBuffering),
+  hSetBuffering, stderr, stdout)
+import Text.Printf (printf)
 
-import HSInstall.AppImage ( mkAppImage, prepAppImageFiles )
-import HSInstall.Build ( BuildTool, clean,
-  determineBuildTool, installBinaries )
-import HSInstall.Common ( TmplDir (v), dumpStockIcon, tmplDir )
+import HSInstall.AppImage (mkAppImage, prepAppImageFiles)
+import HSInstall.Build (BuildTool, clean,
+  determineBuildTool, installBinaries)
+import HSInstall.Common (TmplDir (v), dumpStockIcon, tmplDir)
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , DeploymentInfo (binDir, docDir, prefixDir)
@@ -19,14 +19,14 @@ import HSInstall.DeploymentInfo
   , PrefixDir (..)
   , constructDeploymentInfo
   )
-import HSInstall.Except ( withExceptionHandling )
+import HSInstall.Except (withExceptionHandling)
 import HSInstall.Opts
   ( BuildMode (AppImageExe, Project)
   , CleanSwitch (..), DumpIconSwitch (..)
   , Options (..)
   , parseOpts
   )
-import HSInstall.System.Directory ( copyTree )
+import HSInstall.System.Directory (copyTree)
 
 
 main :: IO ()

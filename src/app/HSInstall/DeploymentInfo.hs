@@ -13,9 +13,9 @@ module HSInstall.DeploymentInfo
   )
   where
 
-import Control.Applicative ( (<|>) )
-import Control.Monad.Trans.Maybe ( MaybeT (..), runMaybeT )
-import Data.List ( find, isSuffixOf )
+import Control.Applicative ((<|>))
+import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
+import Data.List (find, isSuffixOf)
 import Distribution.Package
   ( PackageId
   , PackageIdentifier (pkgName, pkgVersion)
@@ -24,16 +24,16 @@ import Distribution.PackageDescription
   ( GenericPackageDescription (packageDescription)
   , PackageDescription (package)
   )
-import Distribution.Pretty ( prettyShow )
-import Distribution.Simple.PackageDescription ( readGenericPackageDescription )
-import Distribution.Types.PackageName ( unPackageName )
-import Distribution.Types.Version ( Version )
-import Distribution.Verbosity ( normal )
-import System.Directory ( getDirectoryContents )
-import System.FilePath ( (</>), (<.>) )
+import Distribution.Pretty (prettyShow)
+import Distribution.Simple.PackageDescription (readGenericPackageDescription)
+import Distribution.Types.PackageName (unPackageName)
+import Distribution.Types.Version (Version)
+import Distribution.Verbosity (normal)
+import System.Directory (getDirectoryContents)
+import System.FilePath ((</>), (<.>))
 
-import HSInstall.Build ( BuildTool, makeCabal )
-import HSInstall.Common ( ExeFile (..) )
+import HSInstall.Build (BuildTool, makeCabal)
+import HSInstall.Common (ExeFile (..))
 import HSInstall.Except
   ( HSInstallException (NoCabalFiles)
   , throwM

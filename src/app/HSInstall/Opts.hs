@@ -10,15 +10,15 @@ module HSInstall.Opts
   )
   where
 
-import Data.Version ( showVersion )
+import Data.Version (showVersion)
 import Options.Applicative
-import Paths_hsinstall ( version )
-import System.Environment ( getProgName )
-import Text.Heredoc ( here )
-import Text.PrettyPrint.ANSI.Leijen ( string )
-import Text.Printf ( printf )
+import Paths_hsinstall (version)
+import System.Environment (getProgName)
+import Text.Heredoc (here)
+import Text.PrettyPrint.ANSI.Leijen (string)
+import Text.Printf (printf)
 
-import HSInstall.Common ( ExeFile (..), Signing (SigningKeyId, NoSignature) )
+import HSInstall.Common (ExeFile (..), Signing (SigningKeyId, NoSignature))
 
 
 newtype CleanSwitch = CleanSwitch { v :: Bool }

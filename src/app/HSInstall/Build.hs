@@ -7,12 +7,12 @@ module HSInstall.Build
   )
   where
 
-import System.Directory ( getDirectoryContents )
-import System.Process ( callProcess )
+import System.Directory (getDirectoryContents)
+import System.Process (callProcess)
 
-import HSInstall.Common ( ExeFile (..) )
-import HSInstall.Except ( justDoIt )
-import HSInstall.Opts ( BuildMode (AppImageExe, Project) )
+import HSInstall.Common (ExeFile (..))
+import HSInstall.Except (justDoIt)
+import HSInstall.Opts (BuildMode (AppImageExe, Project))
 
 
 data BuildTool = Cabal | Stack

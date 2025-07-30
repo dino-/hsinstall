@@ -1,17 +1,18 @@
 {-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
 
 module HSInstall.AppImage
-  ( mkAppImage, prepAppImageFiles )
+  ( mkAppImage, prepAppImageFiles
+  )
   where
 
-import Control.Monad ( unless )
+import Control.Monad (unless)
 import qualified System.Directory as Dir
-import System.Environment ( setEnv )
-import System.FilePath ( (</>), (<.>), takeDirectory )
-import System.Process ( callProcess )
+import System.Environment (setEnv)
+import System.FilePath ((</>), (<.>), takeDirectory)
+import System.Process (callProcess)
 
-import HSInstall.Common ( ExeFile (..), Signing (SigningKeyId)
-  , TmplDir (v), dumpStockIcon , tmplDir )
+import HSInstall.Common (ExeFile (..), Signing (SigningKeyId)
+  , TmplDir (v), dumpStockIcon , tmplDir)
 import HSInstall.DeploymentInfo
   ( BinDir (..)
   , PrefixDir (..)

@@ -5,12 +5,12 @@ module HSInstall.System.Directory
   )
   where
 
-import Control.Monad ( when )
-import Data.List ( (\\) )
-import System.Directory ( copyFile, createDirectoryIfMissing,
-  doesDirectoryExist, getDirectoryContents )
-import System.FilePath ( (</>) )
-import Text.Printf ( printf )
+import Control.Monad (when)
+import Data.List ((\\))
+import System.Directory (copyFile, createDirectoryIfMissing,
+  doesDirectoryExist, getDirectoryContents)
+import System.FilePath ((</>))
+import Text.Printf (printf)
 
 
 {-
