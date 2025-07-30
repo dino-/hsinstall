@@ -1,4 +1,4 @@
-{-# LANGUAGE DuplicateRecordFields, OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE DuplicateRecordFields, QuasiQuotes #-}
 
 module HSInstall.Opts
   ( BuildMode (..)

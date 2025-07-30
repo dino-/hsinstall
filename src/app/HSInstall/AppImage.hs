@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 
 module HSInstall.AppImage
   ( mkAppImage, prepAppImageFiles

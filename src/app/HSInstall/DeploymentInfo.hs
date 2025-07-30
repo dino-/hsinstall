@@ -1,4 +1,4 @@
-{-# LANGUAGE DuplicateRecordFields, OverloadedRecordDot, OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields, OverloadedRecordDot #-}
 
 module HSInstall.DeploymentInfo
   ( BinDir (..)

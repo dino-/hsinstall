@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HSInstall.System.Directory
   ( copyTree
   )

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedRecordDot, OverloadedStrings #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 
 import Control.Monad (when)
 import Formatting ((%), (%+), fprintLn, string)
