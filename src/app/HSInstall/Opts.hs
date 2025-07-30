@@ -39,6 +39,7 @@ data Options = Options
   }
 
 
+{- HLINT ignore "Functor law" -}
 parser :: Parser Options
 parser = Options
   <$> ( CleanSwitch <$> switch
@@ -52,7 +53,7 @@ parser = Options
         <> help "Save a default icon, unix-terminal.svg, to the current working directory"
         )
       )
-  <*> option ( (AppImageExe . ExeFile) <$> str )
+  <*> option ( AppImageExe . ExeFile <$> str )
         (  long "mk-appimage"
         <> short 'i'
         <> metavar "EXE"
